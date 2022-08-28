@@ -10,7 +10,9 @@ mkdir docs
 mkdir -p gen/openapi
 （作成した`.yaml`ファイルを`openapi.yaml`として`docs`内にコピー）
 go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.0
-oapi-codegen --output-config --old-config-style --package="main" --generate="types,gin,spec" -alias-types docs/openapi.yaml > docs/config.yaml
-oapi-codegen --config docs/config.yaml docs/openapi.yaml > gen/openapi/server.gen.go
+oapi-codegen -output-config -old-config-style -package=openapi -generate=types -alias-types docs/openapi.yaml > docs/config-types.yaml
+oapi-codegen -output-config -old-config-style -package=openapi -generate=gin,spec -alias-types docs/openapi.yaml > docs/config-server.yaml
+oapi-codegen -config docs/config-types.yaml docs/openapi.yaml > gen/openapi/types.gen.go
+oapi-codegen -config docs/config-server.yaml docs/openapi.yaml > gen/openapi/server.gen.go
 go mod tidy
 ```

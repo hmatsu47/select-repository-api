@@ -1,0 +1,170 @@
+openapi: 3.0.0
+info:
+  title: select-repository
+  version: "1.0"
+  contact:
+    name: Hiroyasu Matsuhisa
+    url: "https://github.com/hmatsu47"
+    email: hmatsu47@gmail.com
+  license:
+    name: MIT
+    url: "https://github.com/hmatsu47/select-repository-app/blob/master/LICENSE"
+  description: ECRリポジトリ選択用API
+servers:
+  - url: "http://localhost:3000"
+paths:
+  /setting:
+    parameters: []
+    post:
+      summary: リリース設定の生成・更新
+      operationId: postSetting
+      responses:
+        "200":
+          description: OK
+      description: リリース設定の生成・更新
+      requestBody:
+        $ref: "#/components/requestBodies/postSettingRequest"
+      tags:
+        - setting
+    get:
+      summary: リリース設定の取得
+      operationId: getSetting
+      responses:
+        "200":
+          $ref: "#/components/responses/getSettingResponse"
+      x-internal: false
+      description: リリース設定の取得
+      tags:
+        - setting
+  /repositories:
+    parameters: []
+    get:
+      summary: リポジトリ一覧の取得
+      operationId: getRepositories
+      responses:
+        "200":
+          $ref: "#/components/responses/getRepositoryResponse"
+      description: リポジトリ一覧の取得
+      tags:
+        - repository
+  "/images/{repository_name}":
+    get:
+      summary: コンテナイメージ一覧の取得
+      responses:
+        "200":
+          $ref: "#/components/responses/getImageResponse"
+      operationId: getImages
+      description: コンテナイメージ一覧の取得
+      tags:
+        - image
+    parameters:
+      - $ref: "#/components/parameters/repository_name"
+components:
+  schemas:
+    setting:
+      title: setting
+      type: object
+      description: リリース設定モデル
+      x-examples: {}
+      x-internal: false
+      properties:
+        image_uri:
+          type: string
+        release_at:
+          type: string
+        is_released:
+          type: boolean
+      required:
+        - image_uri
+        - release_at
+        - is_released
+    repository:
+      title: repository
+      x-stoplight:
+        id: a5hmmb5rdowb8
+      x-internal: false
+      description: リポジトリモデル
+      type: object
+      properties:
+        name:
+          type: string
+        uri:
+          type: string
+      required:
+        - name
+        - uri
+    image:
+      title: image
+      x-stoplight:
+        id: 80mchgsyg9n8w
+      type: object
+      x-internal: false
+      description: コンテナイメージモデル
+      properties:
+        uri:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        size:
+          type: number
+        repository_name:
+          type: string
+        digest:
+          type: string
+        pushed_at:
+          type: string
+      required:
+        - uri
+        - tags
+        - size
+        - repository_name
+        - digest
+        - pushed_at
+  parameters:
+    repository_name:
+      name: repository_name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: リポジトリ名
+  requestBodies:
+    postSettingRequest:
+      content:
+        application/xml:
+          schema:
+            $ref: "#/components/schemas/setting"
+        multipart/form-data:
+          schema:
+            type: object
+            properties: {}
+      description: リリース設定リクエストボディ
+  responses:
+    getRepositoryResponse:
+      description: リポジトリレスポンスボディ
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/repository"
+    getImageResponse:
+      description: コンテナイメージレスポンスボディ
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/image"
+    getSettingResponse:
+      description: リリース設定レスポンスボディ
+      content:
+        application/xml:
+          schema:
+            $ref: "#/components/schemas/setting"
+  securitySchemes: {}
+tags:
+  - name: image
+    description: コンテナイメージ
+  - name: repository
+    description: リポジトリ
+  - name: setting
+    description: リリース設定

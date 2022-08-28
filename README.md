@@ -4,6 +4,8 @@ Go で内部管理用 API を作るテスト
 
 ## `.yaml`ファイルから API コードの枠組みを生成
 
+- やり方を試行錯誤するため、一旦`go generate`を使わずに準備
+
 ```sh:install
 go mod init github.com/hmatsu47/select-repository-api
 mkdir internal

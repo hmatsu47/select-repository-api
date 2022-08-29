@@ -1,17 +1,17 @@
 openapi: 3.0.0
 info:
   title: select-repository
-  version: "1.0"
+  version: '1.0'
   contact:
     name: Hiroyasu Matsuhisa
-    url: "https://github.com/hmatsu47"
+    url: 'https://github.com/hmatsu47'
     email: hmatsu47@gmail.com
   license:
     name: MIT
-    url: "https://github.com/hmatsu47/select-repository-app/blob/master/LICENSE"
+    url: 'https://github.com/hmatsu47/select-repository-app/blob/master/LICENSE'
   description: ECRリポジトリ選択用API
 servers:
-  - url: "http://localhost:3000"
+  - url: 'http://localhost:3000'
 paths:
   /setting:
     parameters: []
@@ -19,50 +19,58 @@ paths:
       summary: リリース設定の生成・更新
       operationId: postSetting
       responses:
-        "200":
-          description: OK
+        '200':
+          $ref: '#/components/responses/settingResponse'
+        default:
+          $ref: '#/components/responses/errorResponse'
       description: リリース設定の生成・更新
       requestBody:
-        $ref: "#/components/requestBodies/postSettingRequest"
+        $ref: '#/components/requestBodies/settingRequest'
       tags:
         - setting
     get:
       summary: リリース設定の取得
       operationId: getSetting
-      responses:
-        "200":
-          $ref: "#/components/responses/getSettingResponse"
       x-internal: false
       description: リリース設定の取得
       tags:
         - setting
+      responses:
+        '200':
+          $ref: '#/components/responses/settingResponse'
+        default:
+          $ref: '#/components/responses/errorResponse'
   /repositories:
     parameters: []
     get:
       summary: リポジトリ一覧の取得
       operationId: getRepositories
       responses:
-        "200":
-          $ref: "#/components/responses/getRepositoryResponse"
+        '200':
+          $ref: '#/components/responses/repositoryResponse'
+        default:
+          $ref: '#/components/responses/errorResponse'
       description: リポジトリ一覧の取得
       tags:
         - repository
-  "/images/{repository_name}":
+  '/images/{repository_name}':
     get:
       summary: コンテナイメージ一覧の取得
       responses:
-        "200":
-          $ref: "#/components/responses/getImageResponse"
+        '200':
+          $ref: '#/components/responses/imageResponse'
+        default:
+          $ref: '#/components/responses/errorResponse'
       operationId: getImages
       description: コンテナイメージ一覧の取得
       tags:
         - image
     parameters:
-      - $ref: "#/components/parameters/repository_name"
+      - $ref: '#/components/parameters/repository_name'
 components:
   schemas:
-    setting:
-      title: setting
+    Setting:
+      title: Setting
       type: object
       description: リリース設定モデル
       x-examples: {}
@@ -78,8 +86,8 @@ components:
         - image_uri
         - release_at
         - is_released
-    repository:
-      title: repository
+    Repository:
+      title: Repository
       x-stoplight:
         id: a5hmmb5rdowb8
       x-internal: false
@@ -93,8 +101,8 @@ components:
       required:
         - name
         - uri
-    image:
-      title: image
+    Image:
+      title: Image
       x-stoplight:
         id: 80mchgsyg9n8w
       type: object
@@ -122,6 +130,17 @@ components:
         - repository_name
         - digest
         - pushed_at
+    Error:
+      title: Error
+      x-stoplight:
+        id: 9upl83w057cha
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+      description: エラーメッセージモデル
   parameters:
     repository_name:
       name: repository_name
@@ -131,35 +150,41 @@ components:
         type: string
       description: リポジトリ名
   requestBodies:
-    postSettingRequest:
+    settingRequest:
       content:
         application/xml:
           schema:
-            $ref: "#/components/schemas/setting"
+            $ref: '#/components/schemas/Setting'
         multipart/form-data:
           schema:
             type: object
             properties: {}
       description: リリース設定リクエストボディ
   responses:
-    getRepositoryResponse:
+    repositoryResponse:
       description: リポジトリレスポンスボディ
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/repository"
-    getImageResponse:
+            $ref: '#/components/schemas/Repository'
+    imageResponse:
       description: コンテナイメージレスポンスボディ
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/image"
-    getSettingResponse:
+            $ref: '#/components/schemas/Image'
+    settingResponse:
       description: リリース設定レスポンスボディ
       content:
         application/xml:
           schema:
-            $ref: "#/components/schemas/setting"
+            $ref: '#/components/schemas/Setting'
+    errorResponse:
+      description: エラーメッセージレスポンスボディ
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   securitySchemes: {}
 tags:
   - name: image

@@ -1,21 +1,28 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+type RepositoryMap struct {
+	Name		string
+	Uri			string
+	RegistryId	string
+}
+
 type SelectRepository struct {
 	ServiceName			[]string
-	RepositoryName		map[string][]string
+	RepositoryMap		map[string][]RepositoryMap
 	ServiceSettingPath	string
 }
 
 func NewSelect(config Config) *SelectRepository {
 	return &SelectRepository {
 		ServiceName: config.ServiceName,
-		RepositoryName: config.RepositoryName,
+		RepositoryMap: config.RepositoryMap,
 		ServiceSettingPath: config.ServiceSettingPath,
 	}
 }
@@ -36,12 +43,22 @@ func (s *SelectRepository) GetImages(c *gin.Context, repositoryName RepositoryNa
 
 // リポジトリ一覧の取得
 func (s *SelectRepository) GetRepositories(c *gin.Context, serviceName ServiceName) {
+	if (s.RepositoryMap[serviceName] == nil) {
+		sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
+		return
+	}
 	var result []Repository
+	for _ ,v := range s.RepositoryMap[serviceName] {
+		repository := Repository{
+			Name: v.Name,
+			Uri: v.Uri,
+		}
+        result = append(result, repository)
+    }
 	c.JSON(http.StatusOK, result)
 }
 
 // コンテナサービス一覧の取得
-// (GET /services)
 func (s *SelectRepository) GetServices(c *gin.Context) {
 	var result []Service
     for _ ,v := range s.ServiceName {

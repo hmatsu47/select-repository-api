@@ -4,16 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Config struct {
 	ServiceName			[]string
-	RepositoryName		map[string][]string
+	RepositoryMap		map[string][]RepositoryMap
 	ServiceSettingPath	string
 }
 
 // サービスのリポジトリ一覧取得
-func RepositoryNameList(settingPath string, serviceName string) []string {
+func RepositoryList(settingPath string, serviceName string) []RepositoryMap {
 	repositoriesFile := fmt.Sprintf("%s/%s-repositories", settingPath, serviceName)
 	f, err := os.Open(repositoriesFile)
 	if err != nil {
@@ -22,14 +23,21 @@ func RepositoryNameList(settingPath string, serviceName string) []string {
 	}
 	defer f.Close()
 
-	rscanner := bufio.NewScanner(f)
-	var repositoryNameList []string
-	for rscanner.Scan() {
-		rname := rscanner.Text()
-		fmt.Printf("サービス（%s）のリポジトリ追加 : %s\n", serviceName, rname)
-		repositoryNameList = append(repositoryNameList, rname)
+	scanner := bufio.NewScanner(f)
+	var repositoryList []RepositoryMap
+	for scanner.Scan() {
+		uri := scanner.Text()
+		regid := strings.Split(uri, ".")[0]
+		name := strings.Split(uri, "/")[1]
+		rmap := RepositoryMap{
+			Name: name,
+			Uri: uri,
+			RegistryId: regid,
+		}
+		repositoryList = append(repositoryList, rmap)
+		fmt.Printf("サービス（%s）のリポジトリ追加 : %s\n", serviceName, uri)
 	}
-	return repositoryNameList
+	return repositoryList
 }
 
 func NewConfig(workDir string) Config {
@@ -47,21 +55,21 @@ func NewConfig(workDir string) Config {
 	}
 	defer f.Close()
 
-	repositoryNameMap := map[string][]string{}
+	repositoryMap := map[string][]RepositoryMap{}
 
 	scanner := bufio.NewScanner(f)
 	var serviceNameList []string
 	for scanner.Scan() {
 		name := scanner.Text()
-		fmt.Printf("サービス追加 : %s\n", name)
 		serviceNameList = append(serviceNameList, name)
+		fmt.Printf("サービス追加 : %s\n", name)
 		// 各サービスのリポジトリ一覧を取得
-		repositoryNameMap[name] = RepositoryNameList(settingPath, name)
+		repositoryMap[name] = RepositoryList(settingPath, name)
 	}
 
 	return Config {
 		ServiceName: serviceNameList,
-		RepositoryName: repositoryNameMap,
+		RepositoryMap: repositoryMap,
 		ServiceSettingPath: settingPath,
 	}
 }

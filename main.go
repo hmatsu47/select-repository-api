@@ -16,7 +16,7 @@ import (
 func NewGinSelectRepositoryServer(selectRepository *api.SelectRepository, port int) *http.Server {
 	swagger, err := api.GetSwagger()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error loading swagger spec\n: %s", err)
+		fmt.Fprintf(os.Stderr, "Swagger specの読み取りに失敗しました\n: %s", err)
 		os.Exit(1)
 	}
 
@@ -40,10 +40,13 @@ func NewGinSelectRepositoryServer(selectRepository *api.SelectRepository, port i
 }
 
 func main() {
-	var port = flag.Int("port", 8080, "Port for API server")
+	port := flag.Int("port", 8080, "Port for API server")
 	flag.Parse()
+	// Work Directory はコマンドラインパラメータで取得→設定を取得
+	workDir := flag.Arg(0)
+	config := api.NewConfig(workDir)
 	// Server Instance 生成
-	selectRepository := api.NewSelect()
+	selectRepository := api.NewSelect(config)
 	s := NewGinSelectRepositoryServer(selectRepository, *port)
 	// 停止まで HTTP Request を処理
 	log.Fatal(s.ListenAndServe())

@@ -24,8 +24,11 @@ type ServerInterface interface {
 	// (GET /images/{repository_name})
 	GetImages(c *gin.Context, repositoryName RepositoryName)
 	// リポジトリ一覧の取得
-	// (GET /repositories)
-	GetRepositories(c *gin.Context)
+	// (GET /repositories/{service_name})
+	GetRepositories(c *gin.Context, serviceName ServiceName)
+	// コンテナサービス一覧の取得
+	// (GET /services)
+	GetServices(c *gin.Context)
 	// リリース設定の取得
 	// (GET /setting)
 	GetSetting(c *gin.Context)
@@ -66,11 +69,32 @@ func (siw *ServerInterfaceWrapper) GetImages(c *gin.Context) {
 // GetRepositories operation middleware
 func (siw *ServerInterfaceWrapper) GetRepositories(c *gin.Context) {
 
+	var err error
+
+	// ------------- Path parameter "service_name" -------------
+	var serviceName ServiceName
+
+	err = runtime.BindStyledParameter("simple", false, "service_name", c.Param("service_name"), &serviceName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Sprintf("Invalid format for parameter service_name: %s", err)})
+		return
+	}
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 	}
 
-	siw.Handler.GetRepositories(c)
+	siw.Handler.GetRepositories(c, serviceName)
+}
+
+// GetServices operation middleware
+func (siw *ServerInterfaceWrapper) GetServices(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+	}
+
+	siw.Handler.GetServices(c)
 }
 
 // GetSetting operation middleware
@@ -113,7 +137,9 @@ func RegisterHandlersWithOptions(router *gin.Engine, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/images/:repository_name", wrapper.GetImages)
 
-	router.GET(options.BaseURL+"/repositories", wrapper.GetRepositories)
+	router.GET(options.BaseURL+"/repositories/:service_name", wrapper.GetRepositories)
+
+	router.GET(options.BaseURL+"/services", wrapper.GetServices)
 
 	router.GET(options.BaseURL+"/setting", wrapper.GetSetting)
 
@@ -125,25 +151,28 @@ func RegisterHandlersWithOptions(router *gin.Engine, si ServerInterface, options
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"FwALHQUUAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

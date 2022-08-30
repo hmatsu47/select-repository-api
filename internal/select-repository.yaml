@@ -40,14 +40,15 @@ paths:
           $ref: '#/components/responses/settingResponse'
         default:
           $ref: '#/components/responses/errorResponse'
-  /repositories:
-    parameters: []
+  '/repositories/{service_name}':
+    parameters:
+      - $ref: '#/components/parameters/service_name'
     get:
       summary: リポジトリ一覧の取得
       operationId: getRepositories
       responses:
         '200':
-          $ref: '#/components/responses/repositoryResponse'
+          $ref: '#/components/responses/repositoriesResponse'
         default:
           $ref: '#/components/responses/errorResponse'
       description: リポジトリ一覧の取得
@@ -58,7 +59,7 @@ paths:
       summary: コンテナイメージ一覧の取得
       responses:
         '200':
-          $ref: '#/components/responses/imageResponse'
+          $ref: '#/components/responses/imagesResponse'
         default:
           $ref: '#/components/responses/errorResponse'
       operationId: getImages
@@ -67,6 +68,19 @@ paths:
         - image
     parameters:
       - $ref: '#/components/parameters/repository_name'
+  /services:
+    get:
+      summary: コンテナサービス一覧の取得
+      tags:
+        - service
+      responses:
+        '200':
+          $ref: '#/components/responses/servicesResponse'
+        default:
+          $ref: '#/components/responses/errorResponse'
+      operationId: getServices
+      description: |
+        コンテナサービス一覧の取得
 components:
   schemas:
     Setting:
@@ -141,6 +155,17 @@ components:
       required:
         - message
       description: エラーメッセージモデル
+    Service:
+      title: Service
+      x-stoplight:
+        id: k2e3xvikf21fr
+      type: object
+      description: サービスモデル
+      properties:
+        name:
+          type: string
+      required:
+        - name
   parameters:
     repository_name:
       name: repository_name
@@ -149,6 +174,13 @@ components:
       schema:
         type: string
       description: リポジトリ名
+    service_name:
+      name: service_name
+      in: path
+      schema:
+        type: string
+      description: サービス名
+      required: true
   requestBodies:
     settingRequest:
       content:
@@ -161,18 +193,22 @@ components:
             properties: {}
       description: リリース設定リクエストボディ
   responses:
-    repositoryResponse:
-      description: リポジトリレスポンスボディ
+    repositoriesResponse:
+      description: リポジトリ一覧レスポンスボディ
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Repository'
-    imageResponse:
-      description: コンテナイメージレスポンスボディ
+            type: array
+            items:
+              $ref: '#/components/schemas/Repository'
+    imagesResponse:
+      description: コンテナイメージ一覧レスポンスボディ
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Image'
+            type: array
+            items:
+              $ref: '#/components/schemas/Image'
     settingResponse:
       description: リリース設定レスポンスボディ
       content:
@@ -185,11 +221,21 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    servicesResponse:
+      description: サービス一覧レスポンスボディ
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Service'
   securitySchemes: {}
 tags:
   - name: image
     description: コンテナイメージ
   - name: repository
-    description: リポジトリ
+    description: コンテナリポジトリ
+  - name: service
+    description: コンテナサービス
   - name: setting
     description: リリース設定

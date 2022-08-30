@@ -24,6 +24,11 @@ type Repository struct {
 	Uri  string `json:"uri"`
 }
 
+// サービスモデル
+type Service struct {
+	Name string `json:"name"`
+}
+
 // リリース設定モデル
 type Setting struct {
 	ImageUri   string `json:"image_uri"`
@@ -34,11 +39,17 @@ type Setting struct {
 // RepositoryName defines model for repository_name.
 type RepositoryName = string
 
+// ServiceName defines model for service_name.
+type ServiceName = string
+
 // エラーメッセージモデル
 type ErrorResponse = Error
 
-// コンテナイメージモデル
-type ImageResponse = Image
+// ImagesResponse defines model for imagesResponse.
+type ImagesResponse = []Image
 
-// リポジトリモデル
-type RepositoryResponse = Repository
+// RepositoriesResponse defines model for repositoriesResponse.
+type RepositoriesResponse = []Repository
+
+// ServicesResponse defines model for servicesResponse.
+type ServicesResponse = []Service

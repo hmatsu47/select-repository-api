@@ -40,7 +40,7 @@ func RepositoryList(settingPath string, serviceName string) []RepositoryMap {
 	return repositoryList
 }
 
-func NewConfig(workDir string) Config {
+func NewConfig(workDir string) *Config {
 	// サービス設定パスは Working Directory とする（指定がない場合は /var/select-repository）
 	settingPath := workDir
 	if settingPath == "" {
@@ -67,7 +67,7 @@ func NewConfig(workDir string) Config {
 		repositoryMap[name] = RepositoryList(settingPath, name)
 	}
 
-	return Config {
+	return &Config {
 		ServiceName: serviceNameList,
 		RepositoryMap: repositoryMap,
 		ServiceSettingPath: settingPath,

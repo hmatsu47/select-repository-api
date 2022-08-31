@@ -19,7 +19,7 @@ type SelectRepository struct {
 	ServiceSettingPath	string
 }
 
-func NewSelect(config Config) *SelectRepository {
+func NewSelect(config *Config) *SelectRepository {
 	return &SelectRepository {
 		ServiceName: config.ServiceName,
 		RepositoryMap: config.RepositoryMap,
@@ -69,13 +69,40 @@ func (s *SelectRepository) GetServices(c *gin.Context) {
 }
 
 // リリース設定の取得
-func (s *SelectRepository) GetSetting(c *gin.Context) {
-	var result Setting
-	c.JSON(http.StatusOK, result)
+func (s *SelectRepository) GetSetting(c *gin.Context, serviceName ServiceName) {
+	if (s.RepositoryMap[serviceName] == nil) {
+		sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
+		return
+	}
+	setting := NewSetting(s.ServiceSettingPath, serviceName)
+
+	c.JSON(http.StatusOK, setting)
 }
 
 // リリース設定の生成・更新
-func (s *SelectRepository) PostSetting(c *gin.Context) {
-	var result Setting
-	c.JSON(http.StatusOK, result)
+func (s *SelectRepository) PostSetting(c *gin.Context, serviceName ServiceName) {
+	if (s.RepositoryMap[serviceName] == nil) {
+		sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
+		return
+	}
+	var setting Setting
+	err := c.Bind(&setting)
+	if (err != nil) {
+		sendError(c, http.StatusBadRequest, fmt.Sprintf("設定項目の形式が誤っています : %s", err))
+		return
+	}
+
+	// リリース処理中なら 500 Error を返す
+	if (CheckNowReleaseProcessing(s.ServiceSettingPath, serviceName)) {
+		sendError(c, http.StatusInternalServerError, "現在リリース処理中です。完了までしばらくお待ちください")
+		return
+	}
+
+	// 設定を保存 or 更新
+	uerr := UpdateSetting(s.ServiceSettingPath, serviceName, &setting)
+	if (uerr != nil) {
+		sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の保存・更新が失敗しました : %s", uerr))
+		return
+	}
+	c.JSON(http.StatusOK, setting)
 }

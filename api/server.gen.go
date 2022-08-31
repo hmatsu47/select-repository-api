@@ -30,11 +30,11 @@ type ServerInterface interface {
 	// (GET /services)
 	GetServices(c *gin.Context)
 	// リリース設定の取得
-	// (GET /setting)
-	GetSetting(c *gin.Context)
+	// (GET /setting/{service_name})
+	GetSetting(c *gin.Context, serviceName ServiceName)
 	// リリース設定の生成・更新
-	// (POST /setting)
-	PostSetting(c *gin.Context)
+	// (POST /setting/{service_name})
+	PostSetting(c *gin.Context, serviceName ServiceName)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -100,21 +100,43 @@ func (siw *ServerInterfaceWrapper) GetServices(c *gin.Context) {
 // GetSetting operation middleware
 func (siw *ServerInterfaceWrapper) GetSetting(c *gin.Context) {
 
+	var err error
+
+	// ------------- Path parameter "service_name" -------------
+	var serviceName ServiceName
+
+	err = runtime.BindStyledParameter("simple", false, "service_name", c.Param("service_name"), &serviceName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Sprintf("Invalid format for parameter service_name: %s", err)})
+		return
+	}
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 	}
 
-	siw.Handler.GetSetting(c)
+	siw.Handler.GetSetting(c, serviceName)
 }
 
 // PostSetting operation middleware
 func (siw *ServerInterfaceWrapper) PostSetting(c *gin.Context) {
 
+	var err error
+
+	// ------------- Path parameter "service_name" -------------
+	var serviceName ServiceName
+
+	err = runtime.BindStyledParameter("simple", false, "service_name", c.Param("service_name"), &serviceName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Sprintf("Invalid format for parameter service_name: %s", err)})
+		return
+	}
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 	}
 
-	siw.Handler.PostSetting(c)
+	siw.Handler.PostSetting(c, serviceName)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -141,9 +163,9 @@ func RegisterHandlersWithOptions(router *gin.Engine, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/services", wrapper.GetServices)
 
-	router.GET(options.BaseURL+"/setting", wrapper.GetSetting)
+	router.GET(options.BaseURL+"/setting/:service_name", wrapper.GetSetting)
 
-	router.POST(options.BaseURL+"/setting", wrapper.PostSetting)
+	router.POST(options.BaseURL+"/setting/:service_name", wrapper.PostSetting)
 
 	return router
 }
@@ -151,28 +173,27 @@ func RegisterHandlersWithOptions(router *gin.Engine, si ServerInterface, options
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8xYb2/cNBz+KsjwMm1uLdW6ewVMFVRiaGp5N06VL+e7eEtiYzttjyoSSySYJiEmMQ0J",
-	"GIg/glJgIA2kVkN8mdBufAtkO7kkF+cuPa3S3t0l9s/P8/z+xgfAIT4lAQoEB90DQCGDPhKIqX8MUcKx",
-	"IGy8E0AfyUcDxB2GqcAkAF2QJkdp8jCNj9PkTpocnd77BFgAyzcUChdYQG+rGbIAQ++HmKEB6AoWIgtw",
-	"x0U+lCeIMZVbuGA4GIEosgBHbBc7qAlD/Fea/J0mn6XxSSOAionznB7pxYiLN8gAIyULR0LgYLSln8sn",
-	"DgkECtRPSKmHHSjB2fu+p9ZPrL/C0BB0wct2obqt33J7W1tVjP3QE5hCJuwhYf7SAApYNZTBJP2byBEa",
-	"psEzR1KY+OTZ4W+nj76Qf+Pf0/gwjU+Uu75Kk4/T+HugOXJKAq75IcYI28qezKB3k8uj2vLbkFaNUOPD",
-	"NPlZ+fDbNEnS+ImCfZwmvyqoD9PksfoxAWwB7MMR4gthxAL5fB7YTWlfHpQJDRmDYzP4xxJe8lGa3E3j",
-	"HxQFCf7f4w+f/fjTLAqTnMAXSWRrknmt2FTzeT6JLK8ukMC2PqGdL4pK0AZ6lsVzkS+Yxq1ysglflBcl",
-	"JZDOHUPpa8qc76Sd5BdgAcoIRUxkpctHnMvINtbZoiremCzsWUBg4cmVGoQ1VXsssL/EBaEeHrlKOTwA",
-	"XXAlpN766l5n7bLjQmVcZ5SBgjl/mikM8CirulMMLEBD7qLBDjS/NXSz2hqOPyi/CEK/j5iKPTjilZit",
-	"ba1GpwVChufLLBdlxrPDLUOzzCiXCZb8opU1+QUHArEAeqA7hB5HZletd3zHHfHx6EqwvqcAlmrGvI7f",
-	"7KZGiVvpkhGXa0tMS8AWpgvXXN/vr7EB2euvq3PzCjNzsjg3UROhEpX80HbpdGsFre7v4lvDlUtDloHW",
-	"ZcbsoKki0wRdddEds0MsgPkOQx6CXDKYvO8T4iEY6IRSb835NsW/OKqyr3pKRR/Nz6QP2oc+9RSFyOB3",
-	"VXlxMCR5SYeOAoh8iD3QBa4PBQ9fvfzaSD5YdohfzIlvYUbGkIcvXZNrXMyhikK1TQjKu7Y9wsIN+3Kb",
-	"nVsCtVK/cXVrKlP+u318dvfrp/cPX7++CSzgYQdlXSc7+trmu23OsjnykCOWiiqxBCm1+x7p2z7kAjH7",
-	"7c2rG+9sb6iilMlZ2wQssIsY12gvLXfkYkJRACkGXbC63FnuyHCBwlWRYuuByz6YKk6RfDlCon1hzxrz",
-	"7Uennz44/edzoI5lqtFuylB/EwlV0DiYmkpXOp2m3jtZZ0/NhcovQxh6Yv7W6tSrGnDo+1AWwXOQ0X0i",
-	"i3fQk02p9El1wwyiWGJPF/9ImrDLs6J9UP6YmeEA4yw3S/et0ikLqW8caZ+bD+bxyaUvBfn59a98KGrx",
-	"8xm3ZajXZtAc4nuBSfTt3PoigtfG74sJ+EZKJdUzKKAXac0m7ak5OKtdalZkFt1gEY2qc/5zjcdGCoUs",
-	"GnnP1KgsQAlvq87T+9+c3bmXJk/Ovvzz7MEfNZmuE17RKb+0GDfTLN1r2FOXGtELL3Vdj5rmUX57lCd/",
-	"0V27tu0RB3ou4aK72ul0QNSbWGjby4q5AWf3BTN3VguY6XZsnoVSJtbutkx7a7qVd2Xfqb3o/wAAAP//",
-	"FwALHQUUAAA=",
+	"H4sIAAAAAAAC/8xY3W7cRBR+FXTg0om3CVHTvQKqCCJRVCXchSia9c6up7U9ZmacZIksUVuCqhKiElWR",
+	"gIL4EYQABakgJSriZUzS8hZoZuxdez3en5BI3O16Zs75znd+Zw7AoX5IAxwIDu0DCBFDPhaYqX8Mh5QT",
+	"QdlgJ0A+lp+6mDuMhILQANqQpUdZ+ihLjrP0bpYend7/CCwgciVEwgUL9LGaIAsYfjciDHehLViELeCO",
+	"i30kNYhBKI9wwUjQhzi2gGO2SxzchCH5I0v/zNJPsuSkEUBFxDzaY70Zc/Ea7RKsaOFYCBL0N/R3+cWh",
+	"gcCB+onC0CMOkuDsW1wiPCiJf4nhHrThRXtEu61Xub2pxWqlBp6PpJnJyfPDX04ffyb/Jr9myWGWnCjy",
+	"v8jSD7PkW9CIeUgDrtFixijbyL9cGNg1KdUINTnM0h+VR77O0jRLnirYx1n6s4L6KEufqB9DwBYQH/Ux",
+	"PxdGIrDPp4Fdl/Kloty7iDE0MIN/IuGlH2TpvSz5Tpkgwf99/P7z73+YZMIwwsllGrIxzKOZrKlm53Qj",
+	"8iy5RAM2tYbZfDHK61mg5zk5Ffm+711aTjbhi4sSowjSuWMoZE2Z842Uk/4EFoSMhpiJvBD5mHMZ2caq",
+	"OapxW8ON2xYIIjy5U4MYuoF2bmFHgAX7C1zQ0CN9VzFHutCGa1HorS7vtVauOi5SwnVGGUww50+zCV3S",
+	"z2vomAUWhBF3cXcHqdUeZb78BV0k8IIgqozXjhgaVm0PJ++VF4LI72CmAhL1eSWQa0erIWtBxMh07uWm",
+	"XHiu3DL0w5yHstUlZ2m6Tc4igcAsQB60e8jj2Oy/1ZbvuH0+6F8LVvcUwFIhmdbUm33XSPFMvOSGy70l",
+	"S0vAzm0uWnF9v7PCunSvs6r0FmVn4vAwt6Emg0qmFEpny7HbS3h5f5fc7i1d6bEctK49ZgeNVZ4m6Kq1",
+	"7pgdYgHhOwx7GHFpwXC9Q6mHUaATSq3OkYRjpJQ1VLjRtpm4wfvIDz0FPzb4XJViEvRoUeORo8BhHxEP",
+	"2uD6SPDo5auv9OWHRYf6ozHwDcLoAPHohRtyj0s4UhGojgkR8rZt94lwo448ZheSoFb7165vjGXJP3eO",
+	"z+59+ezB4as318ECjzg4b0O56hvrb8+iy+bYw45YGFWIBRSGdsejHdtHXGBmv7l+fe2tzTVVkHI6a4fA",
+	"gl3MuEZ7ZbElN9MQBygk0IblxdZiS4YKEq6KEltPYPbBWGGK5WIfi9krfd6p7zw+/fjh6V+fglLLVOdd",
+	"l2H+OhaqmHEYG1OXWq2mZjzcZ48NisovPRR5YvrR6hisOnLk+0gWwDmM0T1iS6cVbMsuVboxbZlBjLbY",
+	"44U/liLs8vBoH5TvKhMcYBzuJvG+UdJyLvaNM+6F+WCaPQX1pSCfn//KPVCTXwy9M4Z6bSgtIL4TmEjf",
+	"LKSfh/DaPH45Ad9oUon1HApsx5ozVb7nitVqw5oUqKPmcB7KqveACw3PRhNGLGnk26a+9R9j1YKQ8lnJ",
+	"ffbgq7O797P06dnnv589/K3G8k3KKzQXLxyDZpZKjyD22AtI/L/3VJ2Pmsvi4qmpcM+oV7dt26MO8lzK",
+	"RXu51Wopd+QSZu2MoymE5M8RE09Wy6HpKW2ahFJe1x7CTGdrvJVP5dfg7fjfAAAA////0xBlMhQAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

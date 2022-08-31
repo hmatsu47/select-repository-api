@@ -13,8 +13,9 @@ info:
 servers:
   - url: 'http://localhost:3000'
 paths:
-  /setting:
-    parameters: []
+  '/setting/{service_name}':
+    parameters:
+      - $ref: '#/components/parameters/service_name'
     post:
       summary: リリース設定の生成・更新
       operationId: postSetting
@@ -94,11 +95,10 @@ components:
           type: string
         release_at:
           type: string
+          format: date-time
         is_released:
           type: boolean
       required:
-        - image_uri
-        - release_at
         - is_released
     Repository:
       title: Repository
@@ -137,6 +137,7 @@ components:
           type: string
         pushed_at:
           type: string
+          format: date-time
       required:
         - uri
         - tags
@@ -184,13 +185,9 @@ components:
   requestBodies:
     settingRequest:
       content:
-        application/xml:
+        application/json:
           schema:
             $ref: '#/components/schemas/Setting'
-        multipart/form-data:
-          schema:
-            type: object
-            properties: {}
       description: リリース設定リクエストボディ
   responses:
     repositoriesResponse:

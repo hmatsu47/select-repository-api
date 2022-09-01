@@ -8,93 +8,103 @@ import (
 )
 
 type SelectRepository struct {
-	ServiceName        []string
-	RepositoryMap      map[string][]Repository
-	ServiceSettingPath string
+    ServiceName         []string
+    RepositoryMap       map[string][]Repository
+    RepositoryMap2d     map[RepositoryKey]RepositoryItem
+    ServiceSettingPath  string
 }
 
 func NewSelect(config *Config) *SelectRepository {
-	return &SelectRepository{
-		ServiceName:        config.ServiceName,
-		RepositoryMap:      config.RepositoryMap,
-		ServiceSettingPath: config.ServiceSettingPath,
-	}
+    return &SelectRepository{
+        ServiceName:        config.ServiceName,
+        RepositoryMap:      config.RepositoryMap,
+        RepositoryMap2d:    config.RepositoryMap2d,
+        ServiceSettingPath: config.ServiceSettingPath,
+    }
 }
 
 // エラーメッセージ返却用
 func sendError(c *gin.Context, code int, message string) {
-	selectErr := Error{
-		Message: message,
-	}
-	c.JSON(code, selectErr)
+    selectErr := Error{
+        Message: message,
+    }
+    c.JSON(code, selectErr)
 }
 
 // コンテナイメージ一覧の取得
 func (s *SelectRepository) GetImages(c *gin.Context, serviceName ServiceName, repositoryName RepositoryName) {
-	repositoryMap := s.RepositoryMap[serviceName]
-	if repositoryMap == nil {
-		sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
-		return
-	}
-	var result []Image
-	c.JSON(http.StatusOK, result)
+    repository := s.RepositoryMap[serviceName]
+    if repository == nil {
+        sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
+        return
+    }
+    repository2d := s.RepositoryMap2d[RepositoryKey{
+        ServiceName: serviceName,
+        RepositoryName: repositoryName,
+    }]
+    result, err := ImageList(repositoryName, repository2d.RegistryId, repository2d.Uri)
+    if err != nil {
+        sendError(c, http.StatusInternalServerError, fmt.Sprintf("%s", err))
+        return
+    }
+    c.JSON(http.StatusOK, result)
 }
 
 // リポジトリ一覧の取得
 func (s *SelectRepository) GetRepositories(c *gin.Context, serviceName ServiceName) {
-	if s.RepositoryMap[serviceName] == nil {
-		sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
-		return
-	}
-	result := s.RepositoryMap[serviceName]
-	c.JSON(http.StatusOK, result)
+    if s.RepositoryMap[serviceName] == nil {
+        sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
+        return
+    }
+    result := s.RepositoryMap[serviceName]
+    c.JSON(http.StatusOK, result)
 }
 
 // コンテナサービス一覧の取得
 func (s *SelectRepository) GetServices(c *gin.Context) {
-	var result []Service
-	for _, v := range s.ServiceName {
-		service := Service{Name: v}
-		result = append(result, service)
-	}
-	c.JSON(http.StatusOK, result)
+    var result []Service
+    for _, v := range s.ServiceName {
+        service := Service{Name: v}
+        result = append(result, service)
+    }
+    c.JSON(http.StatusOK, result)
 }
 
 // リリース設定の取得
 func (s *SelectRepository) GetSetting(c *gin.Context, serviceName ServiceName) {
-	if s.RepositoryMap[serviceName] == nil {
-		sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
-		return
-	}
-	setting := ReadSetting(s.ServiceSettingPath, serviceName)
+    if s.RepositoryMap[serviceName] == nil {
+        sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
+        return
+    }
+    result := ReadSetting(s.ServiceSettingPath, serviceName)
 
-	c.JSON(http.StatusOK, setting)
+    c.JSON(http.StatusOK, result)
 }
 
 // リリース設定の生成・更新
 func (s *SelectRepository) PostSetting(c *gin.Context, serviceName ServiceName) {
-	if s.RepositoryMap[serviceName] == nil {
-		sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
-		return
-	}
-	var setting Setting
-	err := c.Bind(&setting)
-	if err != nil {
-		sendError(c, http.StatusBadRequest, fmt.Sprintf("設定項目の形式が誤っています : %s", err))
-		return
-	}
+    if s.RepositoryMap[serviceName] == nil {
+        sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
+        return
+    }
+    var setting Setting
+    err := c.Bind(&setting)
+    if err != nil {
+        sendError(c, http.StatusBadRequest, fmt.Sprintf("設定項目の形式が誤っています : %s", err))
+        return
+    }
 
-	// リリース処理中なら 500 Error を返す
-	if CheckNowReleaseProcessing(s.ServiceSettingPath, serviceName) {
-		sendError(c, http.StatusInternalServerError, "現在リリース処理中です。完了までしばらくお待ちください")
-		return
-	}
+    // リリース処理中なら 500 Error を返す
+    if CheckNowReleaseProcessing(s.ServiceSettingPath, serviceName) {
+        sendError(c, http.StatusInternalServerError, "現在リリース処理中です。完了までしばらくお待ちください")
+        return
+    }
 
-	// 設定を保存 or 更新
-	uerr := UpdateSetting(s.ServiceSettingPath, serviceName, &setting)
-	if uerr != nil {
-		sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の保存・更新が失敗しました : %s", uerr))
-		return
-	}
-	c.JSON(http.StatusOK, setting)
+    // 設定を保存 or 更新
+    uerr := UpdateSetting(s.ServiceSettingPath, serviceName, &setting)
+    if uerr != nil {
+        sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の保存・更新が失敗しました : %s", uerr))
+        return
+    }
+    c.JSON(http.StatusOK, setting)
 }

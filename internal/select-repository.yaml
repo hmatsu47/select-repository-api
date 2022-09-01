@@ -55,7 +55,7 @@ paths:
       description: リポジトリ一覧の取得
       tags:
         - repository
-  '/images/{repository_name}':
+  '/images/{service_name}/{repository_name}':
     get:
       summary: コンテナイメージ一覧の取得
       responses:
@@ -69,6 +69,7 @@ paths:
         - image
     parameters:
       - $ref: '#/components/parameters/repository_name'
+      - $ref: '#/components/parameters/service_name'
   /services:
     get:
       summary: コンテナサービス一覧の取得

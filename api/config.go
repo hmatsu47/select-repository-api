@@ -8,13 +8,13 @@ import (
 )
 
 type Config struct {
-	ServiceName			[]string
-	RepositoryMap		map[string][]RepositoryMap
-	ServiceSettingPath	string
+	ServiceName        []string
+	RepositoryMap      map[string][]Repository
+	ServiceSettingPath string
 }
 
 // サービスのリポジトリ一覧取得
-func RepositoryList(settingPath string, serviceName string) []RepositoryMap {
+func RepositoryList(settingPath string, serviceName string) []Repository {
 	repositoriesFile := fmt.Sprintf("%s/%s-repositories", settingPath, serviceName)
 	f, err := os.Open(repositoriesFile)
 	if err != nil {
@@ -24,23 +24,21 @@ func RepositoryList(settingPath string, serviceName string) []RepositoryMap {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	var repositoryList []RepositoryMap
+	var repositoryList []Repository
 	for scanner.Scan() {
 		uri := scanner.Text()
-		regid := strings.Split(uri, ".")[0]
 		name := strings.Split(uri, "/")[1]
-		rmap := RepositoryMap{
+		repo := Repository{
 			Name: name,
-			Uri: uri,
-			RegistryId: regid,
+			Uri:  uri,
 		}
-		repositoryList = append(repositoryList, rmap)
+		repositoryList = append(repositoryList, repo)
 		fmt.Printf("サービス（%s）のリポジトリ追加 : %s\n", serviceName, uri)
 	}
 	return repositoryList
 }
 
-func NewConfig(workDir string) *Config {
+func ReadConfig(workDir string) *Config {
 	// サービス設定パスは Working Directory とする（指定がない場合は /var/select-repository）
 	settingPath := workDir
 	if settingPath == "" {
@@ -55,7 +53,8 @@ func NewConfig(workDir string) *Config {
 	}
 	defer f.Close()
 
-	repositoryMap := map[string][]RepositoryMap{}
+	// サービス別リポジトリマップを取得
+	repositoryMap := map[string][]Repository{}
 
 	scanner := bufio.NewScanner(f)
 	var serviceNameList []string
@@ -67,9 +66,11 @@ func NewConfig(workDir string) *Config {
 		repositoryMap[name] = RepositoryList(settingPath, name)
 	}
 
-	return &Config {
-		ServiceName: serviceNameList,
-		RepositoryMap: repositoryMap,
+	// サービス別リポジトリマップから全サービスリポジトリマップをせいせい
+
+	return &Config{
+		ServiceName:        serviceNameList,
+		RepositoryMap:      repositoryMap,
 		ServiceSettingPath: settingPath,
 	}
 }

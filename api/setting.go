@@ -8,12 +8,12 @@ import (
 )
 
 type SettingItems struct {
-	ImageUri	string
-	ReleaseAt	time.Time
+	ImageUri  string
+	ReleaseAt time.Time
 }
 
 // 指定ファイルから設定を取得
-func SettingFromFile(settingFile string) (*SettingItems, error) {
+func ReadSettingFromFile(settingFile string) (*SettingItems, error) {
 	f, err := os.Open(settingFile)
 	if err != nil {
 		return nil, fmt.Errorf("ファイルがありません : %s", settingFile)
@@ -29,37 +29,37 @@ func SettingFromFile(settingFile string) (*SettingItems, error) {
 	if err != nil {
 		return nil, fmt.Errorf("リリース日時の形式が誤っています : %s", tmpReleaseAt)
 	}
-	return &SettingItems {
-			ImageUri: imageUri,
-			ReleaseAt: releaseAt,
-		}, nil
+	return &SettingItems{
+		ImageUri:  imageUri,
+		ReleaseAt: releaseAt,
+	}, nil
 }
 
-func NewSetting(settingPath string, serviceName string) Setting {
+func ReadSetting(settingPath string, serviceName string) Setting {
 	// リリース設定ファイルがあればその情報を返す
 	settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)
-	settingItems, err := SettingFromFile(settingFile)
+	settingItems, err := ReadSettingFromFile(settingFile)
 	if err == nil {
-		return Setting {
-			ImageUri: &settingItems.ImageUri,
+		return Setting{
+			ImageUri:   &settingItems.ImageUri,
 			IsReleased: false,
-			ReleaseAt: &settingItems.ReleaseAt,
+			ReleaseAt:  &settingItems.ReleaseAt,
 		}
 	}
 
 	// リリース済みの設定ファイルがあればその情報を返す
 	oldSettingFile := fmt.Sprintf("%s/%s-released", settingPath, serviceName)
-	oldSettingItems, oerr := SettingFromFile(oldSettingFile)
+	oldSettingItems, oerr := ReadSettingFromFile(oldSettingFile)
 	if oerr == nil {
-		return Setting {
-			ImageUri: &oldSettingItems.ImageUri,
+		return Setting{
+			ImageUri:   &oldSettingItems.ImageUri,
 			IsReleased: true,
-			ReleaseAt: &oldSettingItems.ReleaseAt,
+			ReleaseAt:  &oldSettingItems.ReleaseAt,
 		}
 	}
 
 	// どちらも存在しなければ「IsReleased: false」のみ返す
-	return Setting {
+	return Setting{
 		IsReleased: false,
 	}
 }

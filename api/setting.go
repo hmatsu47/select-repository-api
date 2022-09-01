@@ -35,6 +35,7 @@ func ReadSettingFromFile(settingFile string) (*SettingItems, error) {
     }, nil
 }
 
+// 設定読み込み
 func ReadSetting(settingPath string, serviceName string) Setting {
     // リリース設定ファイルがあればその情報を返す
     settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)
@@ -64,12 +65,14 @@ func ReadSetting(settingPath string, serviceName string) Setting {
     }
 }
 
+// リリース処理中かどうか確認
 func CheckNowReleaseProcessing(settingPath string, serviceName string) bool {
     processingFile := fmt.Sprintf("%s/%s-release-processing", settingPath, serviceName)
     _, err := os.Stat(processingFile)
     return err == nil
 }
 
+// 設定書き込み（上書き）
 func UpdateSetting(settingPath string, serviceName string, setting *Setting) error {
     settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)
     f, err := os.Create(settingFile)

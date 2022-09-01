@@ -35,7 +35,7 @@ func ImageList(repositoryName string, registryId string, repositoryUri string) (
     maxResults := int32(1000)
     ecrImagesClient := ecr.NewFromConfig(cfg)
 
-    // 一旦イメージ一覧を取得しておく
+    // 一旦イメージ一覧を取得しておく（URI の一部としてどのタグを使っているのかを後で検索する）
     ecrImageIds, ierr := ecrImagesClient.ListImages(context.TODO(), &ecr.ListImagesInput{
         RepositoryName: &repositoryName,
         RegistryId: &registryId,
@@ -64,7 +64,7 @@ func ImageList(repositoryName string, registryId string, repositoryUri string) (
         pushedAt := v.ImagePushedAt
         size := v.ImageSizeInBytes
         tags := v.ImageTags
-        // 使われているタグを検索
+        // URI に使われているタグを検索
         tag, terr := ImageTag(imageIds, tags, *digest)
         if terr != nil {
             return nil, fmt.Errorf("リポジトリ（%s）のイメージURIの取得に失敗しました : %s", repositoryName, terr)

@@ -10,18 +10,21 @@ import (
 )
 
 // 対象のイメージタグを検索
-func ImageTag(ids []types.ImageIdentifier, tags []string, digest string) (*string, error) {
+func ImageTag(ids []types.ImageIdentifier, tags []string, digest string) string {
     for _, id := range ids {
         for _, tag := range tags {
-            // 値の比較を可能にするために変数に代入
-            vsTag := *id.ImageTag
-            vsDigest := *id.ImageDigest
-            if vsTag == tag && vsDigest == digest {
-                return &tag, nil
+            // nil pointer 回避
+            if id.ImageTag != nil {
+                // 値の比較を可能にするために変数に代入
+                vsTag := *id.ImageTag
+                vsDigest := *id.ImageDigest
+                if vsTag == tag && vsDigest == digest {
+                    return tag
+                }
             }
         }
     }
-    return nil, fmt.Errorf("対象のイメージタグが見つかりません")
+    return ""
 }
 
 // ECR リポジトリ内イメージ一覧取得
@@ -65,11 +68,14 @@ func ImageList(repositoryName string, registryId string, repositoryUri string) (
         size := v.ImageSizeInBytes
         tags := v.ImageTags
         // URI に使われているタグを検索
-        tag, terr := ImageTag(imageIds, tags, *digest)
-        if terr != nil {
-            return nil, fmt.Errorf("リポジトリ（%s）のイメージURIの取得に失敗しました : %s", repositoryName, terr)
+        tag := ImageTag(imageIds, tags, *digest)
+        var uri string
+        if tag == "" {
+            // タグがない場合はダイジェスト
+            uri = fmt.Sprintf("%s@%s", repositoryUri, *digest)
+        } else {
+            uri = fmt.Sprintf("%s:%s", repositoryUri, tag)
         }
-        uri := fmt.Sprintf("%s:%s", repositoryUri, *tag)
         image := Image{
             Digest: *digest,
             PushedAt: *pushedAt,

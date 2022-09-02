@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,6 +48,9 @@ func (s *SelectRepository) GetImages(c *gin.Context, serviceName ServiceName, re
         sendError(c, http.StatusInternalServerError, fmt.Sprintf("%s", err))
         return
     }
+    sort.Slice(result, func(i, j int) bool {
+        return result[i].PushedAt.After(result[j].PushedAt)
+    })
     c.JSON(http.StatusOK, result)
 }
 
@@ -57,6 +61,9 @@ func (s *SelectRepository) GetRepositories(c *gin.Context, serviceName ServiceNa
         return
     }
     result := s.RepositoryMap[serviceName]
+    sort.Slice(result, func(i, j int) bool {
+        return result[i].Name < result[j].Name
+    })
     c.JSON(http.StatusOK, result)
 }
 
@@ -67,6 +74,9 @@ func (s *SelectRepository) GetServices(c *gin.Context) {
         service := Service{Name: v}
         result = append(result, service)
     }
+    sort.Slice(result, func(i, j int) bool {
+        return result[i].Name < result[j].Name
+    })
     c.JSON(http.StatusOK, result)
 }
 

@@ -7,13 +7,6 @@ import (
 	"strings"
 )
 
-type Config struct {
-    ServiceName         []string
-    RepositoryMap       map[string][]Repository
-    RepositoryMap2d     map[RepositoryKey]RepositoryItem
-    ServiceSettingPath  string
-}
-
 type RepositoryKey struct {
     ServiceName     string
     RepositoryName  string
@@ -49,7 +42,7 @@ func RepositoryList(settingPath string, serviceName string) []Repository {
     return repositoryList
 }
 
-func ReadConfig(workDir string) *Config {
+func ReadConfig(workDir string) *SelectRepository {
     // サービス設定パスは Working Directory とする（指定がない場合は /var/select-repository）
     settingPath := workDir
     if settingPath == "" {
@@ -87,7 +80,7 @@ func ReadConfig(workDir string) *Config {
         }
     }
 
-    return &Config{
+    return &SelectRepository{
         ServiceName:        serviceNameList,
         RepositoryMap:      repositoryMap,
         RepositoryMap2d:    repositoryMap2d,

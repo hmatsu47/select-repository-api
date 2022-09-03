@@ -15,13 +15,9 @@ type SelectRepository struct {
     ServiceSettingPath  string
 }
 
-func NewSelect(config *Config) *SelectRepository {
-    return &SelectRepository{
-        ServiceName:        config.ServiceName,
-        RepositoryMap:      config.RepositoryMap,
-        RepositoryMap2d:    config.RepositoryMap2d,
-        ServiceSettingPath: config.ServiceSettingPath,
-    }
+func NewSelectRepository(workDir string) *SelectRepository {
+    selectRepository := ReadConfig(workDir)
+    return selectRepository
 }
 
 // エラーメッセージ返却用

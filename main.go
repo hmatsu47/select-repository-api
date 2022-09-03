@@ -44,9 +44,8 @@ func main() {
     flag.Parse()
     // Work Directory はコマンドラインパラメータで取得→設定を取得
     workDir := flag.Arg(0)
-    config := api.ReadConfig(workDir)
     // Server Instance 生成
-    selectRepository := api.NewSelect(config)
+    selectRepository := api.NewSelectRepository(workDir)
     s := NewGinSelectRepositoryServer(selectRepository, *port)
     // 停止まで HTTP Request を処理
     log.Fatal(s.ListenAndServe())

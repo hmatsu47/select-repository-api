@@ -1,12 +1,13 @@
 package api
 
 import (
-	"context"
-	"fmt"
+    "context"
+    "fmt"
+    "strings"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/ecr"
+    "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 )
 
 // 対象のイメージタグを検索
@@ -29,7 +30,7 @@ func ImageTag(ids []types.ImageIdentifier, tags []string, digest string) string 
 
 // ECR リポジトリ内イメージ一覧取得
 func ImageList(repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
-    cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-northeast-1"))
+    cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(strings.Split(repositoryUri, ".")[3]))
     if err != nil {
         return nil, fmt.Errorf("AWS（API）の認証に失敗しました : %s", err)
     }
@@ -41,8 +42,8 @@ func ImageList(repositoryName string, registryId string, repositoryUri string) (
     // 一旦イメージ一覧を取得しておく（URI の一部としてどのタグを使っているのかを後で検索する）
     ecrImageIds, ierr := ecrImagesClient.ListImages(context.TODO(), &ecr.ListImagesInput{
         RepositoryName: &repositoryName,
-        RegistryId: &registryId,
-        MaxResults: &maxResults,
+        RegistryId:     &registryId,
+        MaxResults:     &maxResults,
     })
     if ierr != nil {
         return nil, fmt.Errorf("リポジトリ（%s）のイメージ一覧の取得に失敗しました : %s", repositoryName, ierr)
@@ -52,8 +53,8 @@ func ImageList(repositoryName string, registryId string, repositoryUri string) (
     // イメージ詳細一覧を取得
     ecrImages, eerr := ecrImagesClient.DescribeImages(context.TODO(), &ecr.DescribeImagesInput{
         RepositoryName: &repositoryName,
-        RegistryId: &registryId,
-        MaxResults: &maxResults,
+        RegistryId:     &registryId,
+        MaxResults:     &maxResults,
     })
     if eerr != nil {
         return nil, fmt.Errorf("リポジトリ（%s）のイメージ詳細一覧の取得に失敗しました : %s", repositoryName, eerr)
@@ -77,12 +78,12 @@ func ImageList(repositoryName string, registryId string, repositoryUri string) (
             uri = fmt.Sprintf("%s:%s", repositoryUri, tag)
         }
         image := Image{
-            Digest: *digest,
-            PushedAt: *pushedAt,
+            Digest:         *digest,
+            PushedAt:       *pushedAt,
             RepositoryName: repositoryName,
-            Size: float32(*size),
-            Tags: tags,
-            Uri: uri,
+            Size:           float32(*size),
+            Tags:           tags,
+            Uri:            uri,
         }
         imageList = append(imageList, image)
     }

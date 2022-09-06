@@ -1,16 +1,16 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"log"
-	"net/http"
-	"os"
+    "flag"
+    "fmt"
+    "log"
+    "net/http"
+    "os"
 
-	"github.com/gin-gonic/gin"
+    "github.com/gin-gonic/gin"
 
-	middleware "github.com/deepmap/oapi-codegen/pkg/gin-middleware"
-	"github.com/hmatsu47/select-repository-api/api"
+    middleware "github.com/deepmap/oapi-codegen/pkg/gin-middleware"
+    "github.com/hmatsu47/select-repository-api/api"
 )
 
 func NewGinSelectRepositoryServer(selectRepository *api.SelectRepository, port int) *http.Server {

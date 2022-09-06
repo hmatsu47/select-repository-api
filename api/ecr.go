@@ -1,13 +1,13 @@
 package api
 
 import (
-	"context"
-	"fmt"
-	"strings"
+    "context"
+    "fmt"
+    "strings"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/ecr"
+    "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 )
 
 // 対象のイメージタグを検索
@@ -30,10 +30,10 @@ func ImageTag(ids []types.ImageIdentifier, tags []string, digest string) string 
 
 // ECR リポジトリ内イメージ一覧取得
 func ImageList(repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(strings.Split(repositoryUri, ".")[3]))
-	if err != nil {
-		return nil, fmt.Errorf("AWS（API）の認証に失敗しました : %s", err)
-	}
+    cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(strings.Split(repositoryUri, ".")[3]))
+    if err != nil {
+        return nil, fmt.Errorf("AWS（API）の認証に失敗しました : %s", err)
+    }
 
 	// ページネーションさせないために最大件数を 1,000 に（実際には数十個程度の想定）
 	maxResults := int32(1000)

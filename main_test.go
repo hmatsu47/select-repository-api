@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -66,8 +67,9 @@ func clearConfig(tmpConfigDir string) {
     os.RemoveAll(tmpConfigDir)
 }
 
+// go test -v . で実行する
 func TestSelectRepository1(t *testing.T) {
-	// var err error
+	var err error
 	templateConfigDir := "./test/config1-single-no-setting"
 	workDir := initConfig(templateConfigDir)
 	selectRepository := api.NewSelectRepository(workDir)
@@ -89,15 +91,37 @@ func TestSelectRepository1(t *testing.T) {
         assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1", repositoryList2d.Uri)
     })
 
-	// ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
-	// r := ginSelectRepositoryServer.Handler
+	ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
+	r := ginSelectRepositoryServer.Handler
 	
-	// t.Run("単一サービス・リリース未設定・サービス一覧取得", func(t *testing.T) {
-	//     rr := doGet(t, r, "/services")
+	t.Run("単一サービス・リリース未設定・サービス一覧取得", func(t *testing.T) {
+	    rr := doGet(t, r, "/services")
 	    
-	// 	var serviceNameList []api.ServiceName
-	// 	err = json.NewDecoder(rr.Body).Decode(&serviceNameList)
-	// 	assert.NoError(t, err, "error getting response")
-	// 	assert.Equal(t, 1, len(serviceNameList))
-	// })
+		var serviceList []api.Service
+		err = json.NewDecoder(rr.Body).Decode(&serviceList)
+		assert.NoError(t, err, "error getting response")
+		assert.Equal(t, 1, len(serviceList))
+	})
+    	
+	t.Run("単一サービス・リリース未設定・サービス一覧＆リポジトリ一覧取得", func(t *testing.T) {
+	    rr := doGet(t, r, "/repositories/test1")
+
+        var repositoryList []api.Repository
+        err = json.NewDecoder(rr.Body).Decode(&repositoryList)
+        assert.NoError(t, err, "error getting response")
+        assert.Equal(t, 1, len(repositoryList))
+        assert.Equal(t, "repository1", repositoryList[0].Name)
+        assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1", repositoryList[0].Uri)
+	})
+        	
+	t.Run("単一サービス・リリース未設定・リリース設定（なし）取得", func(t *testing.T) {
+	    rr := doGet(t, r, "/setting/test1")
+
+        var setting api.Setting
+        err = json.NewDecoder(rr.Body).Decode(&setting)
+        assert.NoError(t, err, "error getting response")
+        assert.Equal(t, false, setting.IsReleased)
+        assert.Nil(t, setting.ImageUri)
+        assert.Nil(t, setting.ReleaseAt)
+	})
 }

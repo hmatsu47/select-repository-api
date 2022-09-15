@@ -1,13 +1,13 @@
 package api
 
 import (
-    "context"
-    "fmt"
-    "strings"
+	"context"
+	"fmt"
+	"strings"
 
-    "github.com/aws/aws-sdk-go-v2/config"
-    "github.com/aws/aws-sdk-go-v2/service/ecr"
-    "github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 )
 
 // 対象のイメージタグを検索
@@ -37,39 +37,63 @@ func EcrClient(region string) (*ecr.Client, error) {
     return ecr.NewFromConfig(cfg), nil
 }
 
+// ECR ListImages
+type EcrListImagesAPI interface {
+    ListImages(ctx context.Context, params *ecr.ListImagesInput, optFns ...func(*ecr.Options)) (*ecr.ListImagesOutput, error)
+}
+
+func EcrListImages(ctx context.Context, api EcrListImagesAPI, repositoryName string, registryId string) ([]types.ImageIdentifier, error) {
+    // ページネーションさせないために最大件数を 1,000 に（実際には数十個程度の想定）
+    maxResults := int32(1000)
+
+    ecrImageIds, err := api.ListImages(ctx, &ecr.ListImagesInput{
+        RepositoryName: &repositoryName,
+        RegistryId:     &registryId,
+        MaxResults:     &maxResults,
+    })
+    if err != nil {
+        return nil, fmt.Errorf("リポジトリ（%s）のイメージ一覧の取得に失敗しました : %s", repositoryName, err)
+    }
+    return ecrImageIds.ImageIds, nil
+}
+
+// ECR DescribeImages
+type EcrDescribeImagesAPI interface {
+    DescribeImages(ctx context.Context, params *ecr.DescribeImagesInput, optFns ...func(*ecr.Options)) (*ecr.DescribeImagesOutput, error)
+}
+
+func EcrDescribeImages(ctx context.Context, api EcrDescribeImagesAPI, repositoryName string, registryId string) ([]types.ImageDetail, error) {
+    // ページネーションさせないために最大件数を 1,000 に（実際には数十個程度の想定）
+    maxResults := int32(1000)
+
+    ecrImages, err := api.DescribeImages(ctx, &ecr.DescribeImagesInput{
+        RepositoryName: &repositoryName,
+        RegistryId:     &registryId,
+        MaxResults:     &maxResults,
+    })
+    if err != nil {
+        return nil, fmt.Errorf("リポジトリ（%s）のイメージ詳細一覧の取得に失敗しました : %s", repositoryName, err)
+    }
+    return ecrImages.ImageDetails, nil
+}
+
 // ECR リポジトリ内イメージ一覧取得
 func ImageList(repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
+    var err error
     region := strings.Split(repositoryUri, ".")[3]
-    ecrImagesClient, err := EcrClient(region)
+    ecrClient, err := EcrClient(region)
     if (err != nil) {
         return nil, err
     }
 
-    // ページネーションさせないために最大件数を 1,000 に（実際には数十個程度の想定）
-    maxResults := int32(1000)
-
-    // 一旦イメージ一覧を取得しておく（URI の一部としてどのタグを使っているのかを後で検索する）
-    ecrImageIds, ierr := ecrImagesClient.ListImages(context.TODO(), &ecr.ListImagesInput{
-        RepositoryName: &repositoryName,
-        RegistryId:     &registryId,
-        MaxResults:     &maxResults,
-    })
-    if ierr != nil {
-        return nil, fmt.Errorf("リポジトリ（%s）のイメージ一覧の取得に失敗しました : %s", repositoryName, ierr)
+    imageIds, err := EcrListImages(context.TODO(), ecrClient, repositoryName, registryId)
+    if (err != nil) {
+        return nil, err
     }
-    imageIds := ecrImageIds.ImageIds
-
-    // イメージ詳細一覧を取得
-    ecrImages, eerr := ecrImagesClient.DescribeImages(context.TODO(), &ecr.DescribeImagesInput{
-        RepositoryName: &repositoryName,
-        RegistryId:     &registryId,
-        MaxResults:     &maxResults,
-    })
-    if eerr != nil {
-        return nil, fmt.Errorf("リポジトリ（%s）のイメージ詳細一覧の取得に失敗しました : %s", repositoryName, eerr)
+    imageDetails, err := EcrDescribeImages(context.TODO(), ecrClient, repositoryName, registryId)
+    if (err != nil) {
+        return nil, err
     }
-
-    imageDetails := ecrImages.ImageDetails
 
     var imageList []Image
     for _, v := range imageDetails {

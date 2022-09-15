@@ -272,6 +272,31 @@ func TestSelectRepository5(t *testing.T) {
         expectedTime, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-11T19:05:00Z")
         assert.Equal(t, expectedTime, *setting.ReleaseAt)
     })
+    
+    t.Run("サービスx2・リリース設定更新（失敗）", func(t *testing.T) {
+        testImageUri := "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository22:20220921-release"
+        testReleaseAt, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-20T19:05:00Z")
+        setting := api.Setting{
+            ImageUri: &testImageUri,
+            IsReleased: false,
+            ReleaseAt: &testReleaseAt,
+        }
+        rr := testutil.NewRequest().Post("/setting/test2").WithJsonBody(setting).GoWithHTTPHandler(t, r).Recorder
+        // レスポンスを確認（リリース処理中なのでエラーメッセージが返る想定）
+        var resultErrorMessage api.Error
+        err = json.NewDecoder(rr.Body).Decode(&resultErrorMessage)
+        assert.NoError(t, err, "error getting response")
+        expectMessage := "現在リリース処理中です。完了までしばらくお待ちください"
+        message := resultErrorMessage.Message
+        assert.Equal(t, expectMessage, message)
+        // 実際の設定を確認（ファイルに上書き保存されていないか？）
+        settingFile := fmt.Sprintf("%s/test2-release-setting", workDir)
+        settingItems, err := api.ReadSettingFromFile(settingFile)
+        assert.NoError(t, err, "変更不可のリリース設定が上書きされています")
+        assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository22:20220912-release", settingItems.ImageUri)
+        expectReleaseAt, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-11T19:05:00Z")
+        assert.Equal(t, expectReleaseAt, settingItems.ReleaseAt)
+    })
 }
 
 func TestSelectRepository6(t *testing.T) {
@@ -345,5 +370,29 @@ func TestSelectRepository6(t *testing.T) {
         assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220915-release", *setting.ImageUri)
         expectedTime, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-15T23:30:00+09:00")
         assert.Equal(t, expectedTime, *setting.ReleaseAt)
+    })
+    
+    t.Run("サービスx3・リリース設定保存（成功）", func(t *testing.T) {
+        testImageUri := "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release"
+        testReleaseAt, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-22T22:30:00+09:00")
+        setting := api.Setting{
+            ImageUri: &testImageUri,
+            IsReleased: false,
+            ReleaseAt: &testReleaseAt,
+        }
+        rr := testutil.NewRequest().Post("/setting/test3").WithJsonBody(setting).GoWithHTTPHandler(t, r).Recorder
+        // レスポンスを確認
+        var resultSetting api.Setting
+        err = json.NewDecoder(rr.Body).Decode(&resultSetting)
+        assert.NoError(t, err, "error getting response")
+        assert.Equal(t, false, resultSetting.IsReleased)
+        assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", *resultSetting.ImageUri)
+        assert.Equal(t, testReleaseAt, *resultSetting.ReleaseAt)
+        // 実際の設定を確認（ファイルに正しく保存されたか？）
+        settingFile := fmt.Sprintf("%s/test3-release-setting", workDir)
+        settingItems, err := api.ReadSettingFromFile(settingFile)
+        assert.NoError(t, err, "リリース設定が保存されていないか、設定内容が不正です")
+        assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", settingItems.ImageUri)
+        assert.Equal(t, testReleaseAt, settingItems.ReleaseAt)
     })
 }

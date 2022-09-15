@@ -77,24 +77,8 @@ func EcrDescribeImages(ctx context.Context, api EcrDescribeImagesAPI, repository
     return ecrImages.ImageDetails, nil
 }
 
-// ECR リポジトリ内イメージ一覧取得
-func ImageList(repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
-    var err error
-    region := strings.Split(repositoryUri, ".")[3]
-    ecrClient, err := EcrClient(region)
-    if (err != nil) {
-        return nil, err
-    }
-
-    imageIds, err := EcrListImages(context.TODO(), ecrClient, repositoryName, registryId)
-    if (err != nil) {
-        return nil, err
-    }
-    imageDetails, err := EcrDescribeImages(context.TODO(), ecrClient, repositoryName, registryId)
-    if (err != nil) {
-        return nil, err
-    }
-
+// ImageList を取得
+func GetImageList(imageIds []types.ImageIdentifier, imageDetails []types.ImageDetail, repositoryName string, repositoryUri string) []Image {
     var imageList []Image
     for _, v := range imageDetails {
         digest := v.ImageDigest
@@ -120,5 +104,27 @@ func ImageList(repositoryName string, registryId string, repositoryUri string) (
         }
         imageList = append(imageList, image)
     }
+    return imageList
+}
+
+// ECR リポジトリ内イメージ一覧取得
+func ImageList(repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
+    var err error
+    region := strings.Split(repositoryUri, ".")[3]
+    ecrClient, err := EcrClient(region)
+    if (err != nil) {
+        return nil, err
+    }
+
+    imageIds, err := EcrListImages(context.TODO(), ecrClient, repositoryName, registryId)
+    if (err != nil) {
+        return nil, err
+    }
+    imageDetails, err := EcrDescribeImages(context.TODO(), ecrClient, repositoryName, registryId)
+    if (err != nil) {
+        return nil, err
+    }
+
+    imageList := GetImageList(imageIds, imageDetails, repositoryName, repositoryUri)
     return imageList, nil
 }

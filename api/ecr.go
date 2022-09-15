@@ -28,16 +28,25 @@ func ImageTag(ids []types.ImageIdentifier, tags []string, digest string) string 
     return ""
 }
 
-// ECR リポジトリ内イメージ一覧取得
-func ImageList(repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
-    cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(strings.Split(repositoryUri, ".")[3]))
+// ECR クライアント生成
+func EcrClient(region string) (*ecr.Client, error) {
+    cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
     if err != nil {
         return nil, fmt.Errorf("AWS（API）の認証に失敗しました : %s", err)
+    }
+    return ecr.NewFromConfig(cfg), nil
+}
+
+// ECR リポジトリ内イメージ一覧取得
+func ImageList(repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
+    region := strings.Split(repositoryUri, ".")[3]
+    ecrImagesClient, err := EcrClient(region)
+    if (err != nil) {
+        return nil, err
     }
 
     // ページネーションさせないために最大件数を 1,000 に（実際には数十個程度の想定）
     maxResults := int32(1000)
-    ecrImagesClient := ecr.NewFromConfig(cfg)
 
     // 一旦イメージ一覧を取得しておく（URI の一部としてどのタグを使っているのかを後で検索する）
     ecrImageIds, ierr := ecrImagesClient.ListImages(context.TODO(), &ecr.ListImagesInput{

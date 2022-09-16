@@ -1,13 +1,14 @@
 package api
 
 import (
-	"context"
-	"fmt"
-	"strings"
+    "context"
+    "fmt"
+    "sort"
+    "strings"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/ecr"
+    "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 )
 
 // 対象のイメージタグを検索
@@ -104,6 +105,10 @@ func GetImageList(imageIds []types.ImageIdentifier, imageDetails []types.ImageDe
         }
         imageList = append(imageList, image)
     }
+    // 結果をプッシュ時間の降順でソート
+    sort.Slice(imageList, func(i, j int) bool {
+        return imageList[i].PushedAt.After(imageList[j].PushedAt)
+    })
     return imageList
 }
 

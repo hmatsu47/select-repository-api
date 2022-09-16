@@ -4,6 +4,7 @@ import (
     "bufio"
     "fmt"
     "os"
+    "sort"
     "strings"
 )
 
@@ -39,6 +40,10 @@ func RepositoryList(settingPath string, serviceName string) []Repository {
         repositoryList = append(repositoryList, repo)
         fmt.Printf("サービス（%s）のリポジトリ追加 : %s\n", serviceName, uri)
     }
+    // リポジトリ名順でソート
+    sort.Slice(repositoryList, func(i, j int) bool {
+        return repositoryList[i].Name < repositoryList[j].Name
+    })
     return repositoryList
 }
 
@@ -79,6 +84,10 @@ func ReadConfig(workDir string) *SelectRepository {
             }
         }
     }
+    // サービス名一覧をソート
+    sort.Slice(serviceNameList, func(i, j int) bool {
+        return serviceNameList[i] < serviceNameList[j]
+    })
 
     return &SelectRepository{
         ServiceName:        serviceNameList,

@@ -22,3 +22,26 @@ oapi-codegen -config api/config-types.yaml internal/select-repository.yaml > api
 oapi-codegen -config api/config-server.yaml internal/select-repository.yaml > api/server.gen.go
 go mod tidy
 ```
+
+## 起動方法
+
+`go run main.go [-port=待機ポート番号（TCP）] [ワークディレクトリ]`
+
+- 開発モードの例
+  - `go build`後のバイナリでも同じパラメータの指定が可能
+- 待機ポート番号を省略すると 8080 番で待機
+- ワークディレクトリを省略すると`/var/select-repository`
+- ワークディレクトリには以下のファイルを配置
+  - `services` : サービス名一覧
+    - 1 行 1 サービス名
+  - `【サービス名】-repositories` : 対象サービスのリポジトリ URI 一覧
+    - 1 行 1 URI
+- 実行する中で以下のファイルが生成される想定
+  - `【サービス名】-release-setting` : 次回リリース設定
+    - 選択イメージ URI とリリース予定日時を保存
+    - この API で生成
+  - `【サービス名】-released` : 前回リリース設定
+    - 外部のリリース処理スクリプト（`cron`で毎分実行）でリリース処理を終えた際に`【サービス名】-release-setting`をリネーム
+  - `【サービス名】-release-processing` : リリース処理中を示すファイル
+    - 外部のリリース処理スクリプト（`cron`で毎分実行）でリリース処理を開始する際に`touch`し、処理終了時に削除
+    - このファイルがあると API では`【サービス名】-release-setting`を上書き保存せず 500 Error を返す

@@ -1,10 +1,10 @@
 package api
 
 import (
-    "bufio"
-    "fmt"
-    "os"
-    "time"
+	"bufio"
+	"fmt"
+	"os"
+	"time"
 )
 
 type SettingItems struct {
@@ -83,6 +83,12 @@ func UpdateSetting(settingPath string, serviceName string, setting *Setting) err
 
     imageUri := *setting.ImageUri
     tmpReleaseAt := *setting.ReleaseAt
+    tmpNow := time.Now().In(time.Local).Add(1 * time.Minute)
+    now := time.Date(tmpNow.Year(), tmpNow.Month(), tmpNow.Day(), tmpNow.Hour(), tmpNow.Minute(), 0, 0, time.Local)
+    if tmpReleaseAt.Before(now) {
+        tmpReleaseAt = now
+        *setting.ReleaseAt = now
+    }
     releaseAt := tmpReleaseAt.Format("2006-01-02T15:04:05Z07:00")
     _, werr := f.WriteString(fmt.Sprintf("%s\n%s", imageUri, releaseAt))
 

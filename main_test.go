@@ -77,7 +77,8 @@ func TestSelectRepository1(t *testing.T) {
     var err error
     templateConfigDir := "./test/config1-single-no-setting"
     workDir := initConfig(templateConfigDir)
-    selectRepository := api.NewSelectRepository(workDir)
+    cronCmd := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd)
 
     defer clearConfig(workDir)
  
@@ -136,7 +137,8 @@ func TestSelectRepository2(t *testing.T) {
     var err error
     templateConfigDir := "./test/config2-single-released-setting-only"
     workDir := initConfig(templateConfigDir)
-    selectRepository := api.NewSelectRepository(workDir)
+    cronCmd := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd)
 
     defer clearConfig(workDir)
  
@@ -160,7 +162,8 @@ func TestSelectRepository3(t *testing.T) {
     var err error
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
-    selectRepository := api.NewSelectRepository(workDir)
+    cronCmd := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd)
 
     defer clearConfig(workDir)
  
@@ -184,7 +187,8 @@ func TestSelectRepository4(t *testing.T) {
     var err error
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
-    selectRepository := api.NewSelectRepository(workDir)
+    cronCmd := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd)
 
     defer clearConfig(workDir)
  
@@ -208,7 +212,8 @@ func TestSelectRepository5(t *testing.T) {
     var err error
     templateConfigDir := "./test/config5-double"
     workDir := initConfig(templateConfigDir)
-    selectRepository := api.NewSelectRepository(workDir)
+    cronCmd := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd)
 
     defer clearConfig(workDir)
  
@@ -304,7 +309,8 @@ func TestSelectRepository6(t *testing.T) {
     var err error
     templateConfigDir := "./test/config6-triple"
     workDir := initConfig(templateConfigDir)
-    selectRepository := api.NewSelectRepository(workDir)
+    cronCmd := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd)
 
     defer clearConfig(workDir)
  

@@ -1,16 +1,16 @@
 package main
 
 import (
-    "flag"
-    "fmt"
-    "log"
-    "net/http"
-    "os"
+	"flag"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 
-    middleware "github.com/deepmap/oapi-codegen/pkg/gin-middleware"
-    "github.com/hmatsu47/select-repository-api/api"
+	middleware "github.com/deepmap/oapi-codegen/pkg/gin-middleware"
+	"github.com/hmatsu47/select-repository-api/api"
 )
 
 func NewGinSelectRepositoryServer(selectRepository *api.SelectRepository, port int) *http.Server {
@@ -44,8 +44,9 @@ func main() {
     flag.Parse()
     // Work Directory はコマンドラインパラメータで取得→設定を取得
     workDir := flag.Arg(0)
+    cronCmd := flag.Arg(1)
     // Server Instance 生成
-    selectRepository := api.NewSelectRepository(workDir)
+    selectRepository := api.NewSelectRepository(workDir, cronCmd)
     s := NewGinSelectRepositoryServer(selectRepository, *port)
     // 停止まで HTTP Request を処理
     log.Fatal(s.ListenAndServe())

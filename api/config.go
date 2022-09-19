@@ -1,11 +1,11 @@
 package api
 
 import (
-    "bufio"
-    "fmt"
-    "os"
-    "sort"
-    "strings"
+	"bufio"
+	"fmt"
+	"os"
+	"sort"
+	"strings"
 )
 
 type RepositoryKey struct {
@@ -47,7 +47,7 @@ func RepositoryList(settingPath string, serviceName string) []Repository {
     return repositoryList
 }
 
-func ReadConfig(workDir string) *SelectRepository {
+func ReadConfig(workDir string, cronCmd string) *SelectRepository {
     // サービス設定パスは Working Directory とする（指定がない場合は /var/select-repository）
     settingPath := workDir
     if settingPath == "" {
@@ -94,5 +94,6 @@ func ReadConfig(workDir string) *SelectRepository {
         RepositoryMap:      repositoryMap,
         RepositoryMap2d:    repositoryMap2d,
         ServiceSettingPath: settingPath,
+        CronCmd:            cronCmd,
     }
 }

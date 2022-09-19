@@ -1,10 +1,10 @@
 package api
 
 import (
-    "fmt"
-    "net/http"
+	"fmt"
+	"net/http"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 type SelectRepository struct {
@@ -12,10 +12,11 @@ type SelectRepository struct {
     RepositoryMap       map[string][]Repository
     RepositoryMap2d     map[RepositoryKey]RepositoryItem
     ServiceSettingPath  string
+    CronCmd             string
 }
 
-func NewSelectRepository(workDir string) *SelectRepository {
-    selectRepository := ReadConfig(workDir)
+func NewSelectRepository(workDir string, cronCmd string) *SelectRepository {
+    selectRepository := ReadConfig(workDir, cronCmd)
     return selectRepository
 }
 

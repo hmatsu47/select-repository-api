@@ -44,9 +44,11 @@ func main() {
     flag.Parse()
     // Work Directory はコマンドラインパラメータで取得→設定を取得
     workDir := flag.Arg(0)
+    // cron.d への書き出し用の指定（コマンド部分とログ書き出し部分）
     cronCmd := flag.Arg(1)
+    cronLog := flag.Arg(2)
     // Server Instance 生成
-    selectRepository := api.NewSelectRepository(workDir, cronCmd)
+    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
     s := NewGinSelectRepositoryServer(selectRepository, *port)
     // 停止まで HTTP Request を処理
     log.Fatal(s.ListenAndServe())

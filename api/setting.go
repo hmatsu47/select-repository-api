@@ -73,7 +73,7 @@ func CheckNowReleaseProcessing(settingPath string, serviceName string) bool {
 }
 
 // 設定書き込み（上書き）
-func UpdateSetting(settingPath string, serviceName string, setting *Setting) error {
+func UpdateSetting(settingPath string, cronCmd string, cronLog string, serviceName string, setting *Setting) error {
     settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)
     f, err := os.Create(settingFile)
     if err != nil {
@@ -91,6 +91,22 @@ func UpdateSetting(settingPath string, serviceName string, setting *Setting) err
     }
     releaseAt := tmpReleaseAt.Format("2006-01-02T15:04:05Z07:00")
     _, werr := f.WriteString(fmt.Sprintf("%s\n%s", imageUri, releaseAt))
+    if werr != nil || cronCmd == "" {
+        return werr
+    }
+    // cron.d にリリーススクリプト起動用の設定を保存
+    cronFile := fmt.Sprintf("/etc/cron.d/%s-release", serviceName)
+    fc, cerr := os.Create(cronFile)
+    if cerr != nil {
+        return cerr
+    }
+    defer fc.Close()
 
-    return werr
+    month := int(tmpReleaseAt.Local().Month())
+    day := tmpReleaseAt.Local().Day()
+    hour := tmpReleaseAt.Local().Hour()
+    minute := tmpReleaseAt.Local().Minute()
+    _, wcerr := fc.WriteString(fmt.Sprintf("%d %d %d %d * root %s %s %s", minute, hour, day, month, cronCmd, imageUri, cronLog))
+
+    return wcerr
 }

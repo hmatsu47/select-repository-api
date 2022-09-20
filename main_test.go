@@ -78,7 +78,8 @@ func TestSelectRepository1(t *testing.T) {
     templateConfigDir := "./test/config1-single-no-setting"
     workDir := initConfig(templateConfigDir)
     cronCmd := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd)
+    cronLog := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
 
     defer clearConfig(workDir)
  
@@ -138,7 +139,8 @@ func TestSelectRepository2(t *testing.T) {
     templateConfigDir := "./test/config2-single-released-setting-only"
     workDir := initConfig(templateConfigDir)
     cronCmd := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd)
+    cronLog := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
 
     defer clearConfig(workDir)
  
@@ -163,7 +165,8 @@ func TestSelectRepository3(t *testing.T) {
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
     cronCmd := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd)
+    cronLog := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
 
     defer clearConfig(workDir)
  
@@ -188,7 +191,8 @@ func TestSelectRepository4(t *testing.T) {
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
     cronCmd := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd)
+    cronLog := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
 
     defer clearConfig(workDir)
  
@@ -213,7 +217,8 @@ func TestSelectRepository5(t *testing.T) {
     templateConfigDir := "./test/config5-double"
     workDir := initConfig(templateConfigDir)
     cronCmd := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd)
+    cronLog := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
 
     defer clearConfig(workDir)
  
@@ -310,7 +315,8 @@ func TestSelectRepository6(t *testing.T) {
     templateConfigDir := "./test/config6-triple"
     workDir := initConfig(templateConfigDir)
     cronCmd := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd)
+    cronLog := ""
+    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
 
     defer clearConfig(workDir)
  

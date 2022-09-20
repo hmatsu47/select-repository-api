@@ -68,19 +68,19 @@ func initConfig(templateConfigDir string) string {
 }
 
 // cron.d 用のテンポラリディレクトリを作成
-func initCronDir() string {
-    tmpCronDir, err := os.MkdirTemp("", "cron.d")
+func initCronPath() string {
+    tmpCronPath, err := os.MkdirTemp("", "cron.d")
     if err != nil {
         panic(err)
     }
-    fmt.Printf("テスト用のテンポラリディレクトリ（%s）を作成しました\n", tmpCronDir)
+    fmt.Printf("テスト用のテンポラリディレクトリ（%s）を作成しました\n", tmpCronPath)
 
-    return tmpCronDir
+    return fmt.Sprintf("%s/", tmpCronPath)
 }
 
 // cron.d 内のファイルを読み取り
-func readCron(cronDir string, serviceName string) string {
-    cronFile := fmt.Sprintf("%s/test3-release", cronDir)
+func readCron(cronPath string, serviceName string) string {
+    cronFile := fmt.Sprintf("%s/test3-release", cronPath)
     f, err := os.Open(cronFile)
     if err != nil {
         panic(err)
@@ -105,13 +105,13 @@ func TestSelectRepository1(t *testing.T) {
     var err error
     templateConfigDir := "./test/config1-single-no-setting"
     workDir := initConfig(templateConfigDir)
-    cronDir := initCronDir()
+    cronPath := initCronPath()
     cronCmd := "echo"
     cronLog := ">> /dev/null"
-    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
+    selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
     defer clearTempDir(workDir)
-    defer clearTempDir(cronDir)
+    defer clearTempDir(cronPath)
  
     t.Run("単一サービス・リリース未設定・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName
@@ -168,13 +168,13 @@ func TestSelectRepository2(t *testing.T) {
     var err error
     templateConfigDir := "./test/config2-single-released-setting-only"
     workDir := initConfig(templateConfigDir)
-    cronDir := initCronDir()
+    cronPath := initCronPath()
     cronCmd := "echo"
     cronLog := ">> /dev/null"
-    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
+    selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
     defer clearTempDir(workDir)
-    defer clearTempDir(cronDir)
+    defer clearTempDir(cronPath)
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -196,13 +196,13 @@ func TestSelectRepository3(t *testing.T) {
     var err error
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
-    cronDir := initCronDir()
+    cronPath := initCronPath()
     cronCmd := "echo"
     cronLog := ">> /dev/null"
-    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
+    selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
     defer clearTempDir(workDir)
-    defer clearTempDir(cronDir)
+    defer clearTempDir(cronPath)
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -224,13 +224,13 @@ func TestSelectRepository4(t *testing.T) {
     var err error
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
-    cronDir := initCronDir()
+    cronPath := initCronPath()
     cronCmd := "echo"
     cronLog := ">> /dev/null"
-    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
+    selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
     defer clearTempDir(workDir)
-    defer clearTempDir(cronDir)
+    defer clearTempDir(cronPath)
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -252,13 +252,13 @@ func TestSelectRepository5(t *testing.T) {
     var err error
     templateConfigDir := "./test/config5-double"
     workDir := initConfig(templateConfigDir)
-    cronDir := initCronDir()
+    cronPath := initCronPath()
     cronCmd := "echo"
     cronLog := ">> /dev/null"
-    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
+    selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
     defer clearTempDir(workDir)
-    defer clearTempDir(cronDir)
+    defer clearTempDir(cronPath)
  
     t.Run("サービスx2・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName
@@ -352,13 +352,13 @@ func TestSelectRepository6(t *testing.T) {
     var err error
     templateConfigDir := "./test/config6-triple"
     workDir := initConfig(templateConfigDir)
-    cronDir := initCronDir()
+    cronPath := initCronPath()
     cronCmd := "echo"
     cronLog := ">> /dev/null"
-    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
+    selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
     defer clearTempDir(workDir)
-    defer clearTempDir(cronDir)
+    defer clearTempDir(cronPath)
  
     t.Run("サービスx3・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName
@@ -448,7 +448,7 @@ func TestSelectRepository6(t *testing.T) {
         assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", settingItems.ImageUri)
         assert.Equal(t, testReleaseAt, settingItems.ReleaseAt)
         // cron.d に出力されたファイルの内容を確認
-        cron := readCron(cronDir, "test3")
+        cron := readCron(cronPath, "test3")
         expected := "30 22 2 9 * root echo 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release >> /dev/null"
         assert.Equal(t, expected, cron)
     })
@@ -478,7 +478,7 @@ func TestSelectRepository6(t *testing.T) {
         assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", settingItems.ImageUri)
         assert.Equal(t, now, settingItems.ReleaseAt)
         // cron.d に出力されたファイルの内容を確認
-        cron := readCron(cronDir, "test3")
+        cron := readCron(cronPath, "test3")
         expected := fmt.Sprintf("%d %d %d %d * root echo %s >> /dev/null", now.Minute(), now.Hour(), now.Day(), int(now.Month()), testImageUri)
         assert.Equal(t, expected, cron)
     })

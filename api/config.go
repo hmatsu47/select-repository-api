@@ -47,7 +47,7 @@ func RepositoryList(settingPath string, serviceName string) []Repository {
     return repositoryList
 }
 
-func ReadConfig(workDir string, cronDir string, cronCmd string, cronLog string) *SelectRepository {
+func ReadConfig(workDir string, cronPath string, cronCmd string, cronLog string) *SelectRepository {
     // サービス設定パスは Working Directory とする（指定がない場合は /var/select-repository）
     settingPath := workDir
     if settingPath == "" {
@@ -94,7 +94,7 @@ func ReadConfig(workDir string, cronDir string, cronCmd string, cronLog string) 
         RepositoryMap:      repositoryMap,
         RepositoryMap2d:    repositoryMap2d,
         ServiceSettingPath: settingPath,
-        CronDir:            cronDir,
+        CronPath:           cronPath,
         CronCmd:            cronCmd,
         CronLog:            cronLog,
     }

@@ -74,7 +74,7 @@ func CheckNowReleaseProcessing(settingPath string, serviceName string) bool {
 }
 
 // 設定書き込み（上書き）
-func UpdateSetting(settingPath string, cronDir string, cronCmd string, cronLog string, serviceName string, setting *Setting) error {
+func UpdateSetting(settingPath string, cronPath string, cronCmd string, cronLog string, serviceName string, setting *Setting) error {
     var err error
     settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)
     f, err := os.Create(settingFile)
@@ -97,7 +97,8 @@ func UpdateSetting(settingPath string, cronDir string, cronCmd string, cronLog s
         return err
     }
     // cron.d にリリーススクリプト起動用の設定を保存
-    cronFile := fmt.Sprintf("%s/%s-release", cronDir, serviceName)
+    cronFile := fmt.Sprintf("%s%s-release", cronPath, serviceName)
+    fmt.Printf("保存先ファイル名 : %s\n", cronFile)
     fc, err := os.Create(cronFile)
     if err != nil {
         return err

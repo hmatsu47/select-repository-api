@@ -25,7 +25,7 @@ go mod tidy
 
 ## 起動方法
 
-`go run main.go [-port=待機ポート番号（TCP）] [ワークディレクトリ]`
+`go run main.go [-port=待機ポート番号（TCP）] [ワークディレクトリ [cron.d書き出しパス＋ファイル名プレフィックス [cron.dで実行するリリーススクリプト [ログの書き出し指定]]]]`
 
 - 開発モードの例
   - `go build`後のバイナリでも同じパラメータの指定が可能
@@ -43,5 +43,9 @@ go mod tidy
   - `【サービス名】-released` : 前回リリース設定
     - 外部のリリース処理スクリプト（`cron`で毎分実行）でリリース処理を終えた際に`【サービス名】-release-setting`をリネーム
   - `【サービス名】-release-processing` : リリース処理中を示すファイル
-    - 外部のリリース処理スクリプト（`cron`で毎分実行）でリリース処理を開始する際に`touch`し、処理終了時に削除
+    - 外部のリリース処理スクリプト（`cron`で実行）でリリース処理を開始する際に`touch`し、処理終了時に削除
     - このファイルがあると API では`【サービス名】-release-setting`を上書き保存せず 500 Error を返す
+  - `【cron.d 書き出しパス＋ファイル名プレフィックス】`
+    - このファイルのみワークディレクトリ外に生成
+      - `/etc/cron.d`に生成する想定
+        - 例 : `5 4 22 9 * root sh /usr/local/sbin/release.sh 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220922-release >> /var/log/release-log`

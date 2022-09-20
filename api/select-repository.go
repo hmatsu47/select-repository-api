@@ -12,13 +12,13 @@ type SelectRepository struct {
     RepositoryMap       map[string][]Repository
     RepositoryMap2d     map[RepositoryKey]RepositoryItem
     ServiceSettingPath  string
-    CronDir             string
+    CronPath            string
     CronCmd             string
     CronLog             string
 }
 
-func NewSelectRepository(workDir string, cronDir string, cronCmd string, cronLog string) *SelectRepository {
-    selectRepository := ReadConfig(workDir, cronDir, cronCmd, cronLog)
+func NewSelectRepository(workDir string, cronPath string, cronCmd string, cronLog string) *SelectRepository {
+    selectRepository := ReadConfig(workDir, cronPath, cronCmd, cronLog)
     return selectRepository
 }
 
@@ -101,7 +101,7 @@ func (s *SelectRepository) PostSetting(c *gin.Context, serviceName ServiceName) 
     }
 
     // 設定を保存 or 更新
-    err = UpdateSetting(s.ServiceSettingPath, s.CronDir, s.CronCmd, s.CronLog, serviceName, &setting)
+    err = UpdateSetting(s.ServiceSettingPath, s.CronPath, s.CronCmd, s.CronLog, serviceName, &setting)
     if err != nil {
         sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の保存・更新が失敗しました : %s", err))
         return

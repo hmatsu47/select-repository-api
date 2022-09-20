@@ -106,7 +106,7 @@ func UpdateSetting(settingPath string, cronCmd string, cronLog string, serviceNa
     day := tmpReleaseAt.Local().Day()
     hour := tmpReleaseAt.Local().Hour()
     minute := tmpReleaseAt.Local().Minute()
-    _, wcerr := fc.WriteString(fmt.Sprintf("%d %d %d %d * root %s %s %s", minute, hour, day, month, cronCmd, imageUri, cronLog))
+    _, wcerr := fc.WriteString(fmt.Sprintf("%d %d %d %d * root %s %s %s\n", minute, hour, day, month, cronCmd, imageUri, cronLog))
 
     return wcerr
 }

@@ -45,10 +45,11 @@ func main() {
     // Work Directory はコマンドラインパラメータで取得→設定を取得
     workDir := flag.Arg(0)
     // cron.d への書き出し用の指定（コマンド部分とログ書き出し部分）
+    cronDir := "/etc/cron.d"
     cronCmd := flag.Arg(1)
     cronLog := flag.Arg(2)
     // Server Instance 生成
-    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
+    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
     s := NewGinSelectRepositoryServer(selectRepository, *port)
     // 停止まで HTTP Request を処理
     log.Fatal(s.ListenAndServe())

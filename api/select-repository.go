@@ -12,12 +12,13 @@ type SelectRepository struct {
     RepositoryMap       map[string][]Repository
     RepositoryMap2d     map[RepositoryKey]RepositoryItem
     ServiceSettingPath  string
+    CronDir             string
     CronCmd             string
     CronLog             string
 }
 
-func NewSelectRepository(workDir string, cronCmd string, cronLog string) *SelectRepository {
-    selectRepository := ReadConfig(workDir, cronCmd, cronLog)
+func NewSelectRepository(workDir string, cronDir string, cronCmd string, cronLog string) *SelectRepository {
+    selectRepository := ReadConfig(workDir, cronDir, cronCmd, cronLog)
     return selectRepository
 }
 
@@ -81,12 +82,13 @@ func (s *SelectRepository) GetSetting(c *gin.Context, serviceName ServiceName) {
 
 // リリース設定の生成・更新
 func (s *SelectRepository) PostSetting(c *gin.Context, serviceName ServiceName) {
+    var err error
     if s.RepositoryMap[serviceName] == nil {
         sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
         return
     }
     var setting Setting
-    err := c.Bind(&setting)
+    err = c.Bind(&setting)
     if err != nil {
         sendError(c, http.StatusBadRequest, fmt.Sprintf("設定項目の形式が誤っています : %s", err))
         return
@@ -99,9 +101,9 @@ func (s *SelectRepository) PostSetting(c *gin.Context, serviceName ServiceName) 
     }
 
     // 設定を保存 or 更新
-    uerr := UpdateSetting(s.ServiceSettingPath, s.CronCmd, s.CronLog, serviceName, &setting)
-    if uerr != nil {
-        sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の保存・更新が失敗しました : %s", uerr))
+    err = UpdateSetting(s.ServiceSettingPath, s.CronDir, s.CronCmd, s.CronLog, serviceName, &setting)
+    if err != nil {
+        sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の保存・更新が失敗しました : %s", err))
         return
     }
     c.JSON(http.StatusOK, setting)

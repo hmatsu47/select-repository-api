@@ -65,11 +65,21 @@ func initConfig(templateConfigDir string) string {
     }
     return tmpConfigDir
 }
+// cron.d 用のテンポラリディレクトリを作成
+func initCronDir() string {
+    tmpCronDir, err := os.MkdirTemp("", "cron.d")
+    if err != nil {
+        panic(err)
+    }
+    fmt.Printf("テスト用のテンポラリディレクトリ（%s）を作成しました\n", tmpCronDir)
+
+    return tmpCronDir
+}
 
 // 設定を削除
-func clearConfig(tmpConfigDir string) {
-    os.RemoveAll(tmpConfigDir)
-    fmt.Printf("テスト用のテンポラリディレクトリ（%s）を削除しました\n", tmpConfigDir)
+func clearTempDir(tmpDir string) {
+    os.RemoveAll(tmpDir)
+    fmt.Printf("テスト用のテンポラリディレクトリ（%s）を削除しました\n", tmpDir)
 }
 
 // go test -v . で実行する
@@ -77,11 +87,13 @@ func TestSelectRepository1(t *testing.T) {
     var err error
     templateConfigDir := "./test/config1-single-no-setting"
     workDir := initConfig(templateConfigDir)
-    cronCmd := ""
-    cronLog := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
+    cronDir := initCronDir()
+    cronCmd := "echo "
+    cronLog := ">> /dev/null"
+    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
-    defer clearConfig(workDir)
+    defer clearTempDir(workDir)
+    defer clearTempDir(cronDir)
  
     t.Run("単一サービス・リリース未設定・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName
@@ -138,11 +150,13 @@ func TestSelectRepository2(t *testing.T) {
     var err error
     templateConfigDir := "./test/config2-single-released-setting-only"
     workDir := initConfig(templateConfigDir)
-    cronCmd := ""
-    cronLog := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
+    cronDir := initCronDir()
+    cronCmd := "echo "
+    cronLog := ">> /dev/null"
+    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
-    defer clearConfig(workDir)
+    defer clearTempDir(workDir)
+    defer clearTempDir(cronDir)
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -164,11 +178,13 @@ func TestSelectRepository3(t *testing.T) {
     var err error
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
-    cronCmd := ""
-    cronLog := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
+    cronDir := initCronDir()
+    cronCmd := "echo "
+    cronLog := ">> /dev/null"
+    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
-    defer clearConfig(workDir)
+    defer clearTempDir(workDir)
+    defer clearTempDir(cronDir)
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -190,11 +206,13 @@ func TestSelectRepository4(t *testing.T) {
     var err error
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
-    cronCmd := ""
-    cronLog := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
+    cronDir := initCronDir()
+    cronCmd := "echo "
+    cronLog := ">> /dev/null"
+    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
-    defer clearConfig(workDir)
+    defer clearTempDir(workDir)
+    defer clearTempDir(cronDir)
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -216,11 +234,13 @@ func TestSelectRepository5(t *testing.T) {
     var err error
     templateConfigDir := "./test/config5-double"
     workDir := initConfig(templateConfigDir)
-    cronCmd := ""
-    cronLog := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
+    cronDir := initCronDir()
+    cronCmd := "echo "
+    cronLog := ">> /dev/null"
+    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
-    defer clearConfig(workDir)
+    defer clearTempDir(workDir)
+    defer clearTempDir(cronDir)
  
     t.Run("サービスx2・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName
@@ -314,11 +334,13 @@ func TestSelectRepository6(t *testing.T) {
     var err error
     templateConfigDir := "./test/config6-triple"
     workDir := initConfig(templateConfigDir)
-    cronCmd := ""
-    cronLog := ""
-    selectRepository := api.NewSelectRepository(workDir, cronCmd, cronLog)
+    cronDir := initCronDir()
+    cronCmd := "echo "
+    cronLog := ">> /dev/null"
+    selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
-    defer clearConfig(workDir)
+    defer clearTempDir(workDir)
+    defer clearTempDir(cronDir)
  
     t.Run("サービスx3・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName
@@ -407,6 +429,7 @@ func TestSelectRepository6(t *testing.T) {
         assert.NoError(t, err, "リリース設定が保存されていないか、設定内容が不正です")
         assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", settingItems.ImageUri)
         assert.Equal(t, testReleaseAt, settingItems.ReleaseAt)
+        // TODO: cron.d に出力されたファイルの内容チェック実装
     })
     
     t.Run("サービスx3・リリース設定（即時リリース）保存（成功）", func(t *testing.T) {
@@ -433,6 +456,7 @@ func TestSelectRepository6(t *testing.T) {
         assert.NoError(t, err, "リリース設定が保存されていないか、設定内容が不正です")
         assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", settingItems.ImageUri)
         assert.Equal(t, now, settingItems.ReleaseAt)
+        // TODO: cron.d に出力されたファイルの内容チェック実装
     })
     
     t.Run("サービス×3・イメージ取得（GetImageListのみ）", func(t *testing.T) {

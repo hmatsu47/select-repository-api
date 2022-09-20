@@ -37,6 +37,7 @@ func ReadSettingFromFile(settingFile string) (*SettingItems, error) {
 
 // 設定読み込み
 func ReadSetting(settingPath string, serviceName string) Setting {
+    var err error
     // リリース設定ファイルがあればその情報を返す
     settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)
     settingItems, err := ReadSettingFromFile(settingFile)
@@ -50,8 +51,8 @@ func ReadSetting(settingPath string, serviceName string) Setting {
 
     // リリース済みの設定ファイルがあればその情報を返す
     oldSettingFile := fmt.Sprintf("%s/%s-released", settingPath, serviceName)
-    oldSettingItems, oerr := ReadSettingFromFile(oldSettingFile)
-    if oerr == nil {
+    oldSettingItems, err := ReadSettingFromFile(oldSettingFile)
+    if err == nil {
         return Setting{
             ImageUri:   &oldSettingItems.ImageUri,
             IsReleased: true,
@@ -73,7 +74,8 @@ func CheckNowReleaseProcessing(settingPath string, serviceName string) bool {
 }
 
 // 設定書き込み（上書き）
-func UpdateSetting(settingPath string, cronCmd string, cronLog string, serviceName string, setting *Setting) error {
+func UpdateSetting(settingPath string, cronDir string, cronCmd string, cronLog string, serviceName string, setting *Setting) error {
+    var err error
     settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)
     f, err := os.Create(settingFile)
     if err != nil {
@@ -90,15 +92,15 @@ func UpdateSetting(settingPath string, cronCmd string, cronLog string, serviceNa
         *setting.ReleaseAt = now
     }
     releaseAt := tmpReleaseAt.Format("2006-01-02T15:04:05Z07:00")
-    _, werr := f.WriteString(fmt.Sprintf("%s\n%s", imageUri, releaseAt))
-    if werr != nil || cronCmd == "" {
-        return werr
+    _, err = f.WriteString(fmt.Sprintf("%s\n%s", imageUri, releaseAt))
+    if err != nil || cronCmd == "" {
+        return err
     }
     // cron.d にリリーススクリプト起動用の設定を保存
-    cronFile := fmt.Sprintf("/etc/cron.d/%s-release", serviceName)
-    fc, cerr := os.Create(cronFile)
-    if cerr != nil {
-        return cerr
+    cronFile := fmt.Sprintf("%s/%s-release", cronDir, serviceName)
+    fc, err := os.Create(cronFile)
+    if err != nil {
+        return err
     }
     defer fc.Close()
 
@@ -106,7 +108,7 @@ func UpdateSetting(settingPath string, cronCmd string, cronLog string, serviceNa
     day := tmpReleaseAt.Local().Day()
     hour := tmpReleaseAt.Local().Hour()
     minute := tmpReleaseAt.Local().Minute()
-    _, wcerr := fc.WriteString(fmt.Sprintf("%d %d %d %d * root %s %s %s\n", minute, hour, day, month, cronCmd, imageUri, cronLog))
+    _, err = fc.WriteString(fmt.Sprintf("%d %d %d %d * root %s %s %s\n", minute, hour, day, month, cronCmd, imageUri, cronLog))
 
-    return wcerr
+    return err
 }

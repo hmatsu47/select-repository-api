@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -65,6 +66,7 @@ func initConfig(templateConfigDir string) string {
     }
     return tmpConfigDir
 }
+
 // cron.d 用のテンポラリディレクトリを作成
 func initCronDir() string {
     tmpCronDir, err := os.MkdirTemp("", "cron.d")
@@ -76,7 +78,23 @@ func initCronDir() string {
     return tmpCronDir
 }
 
-// 設定を削除
+// cron.d 内のファイルを読み取り
+func readCron(cronDir string, serviceName string) string {
+    cronFile := fmt.Sprintf("%s/test3-release", cronDir)
+    f, err := os.Open(cronFile)
+    if err != nil {
+        panic(err)
+    }
+    defer f.Close()
+
+    scanner := bufio.NewScanner(f)
+    scanner.Scan()
+    cron := scanner.Text()
+
+    return cron
+}
+
+// テンポラリディレクトリを削除
 func clearTempDir(tmpDir string) {
     os.RemoveAll(tmpDir)
     fmt.Printf("テスト用のテンポラリディレクトリ（%s）を削除しました\n", tmpDir)
@@ -88,7 +106,7 @@ func TestSelectRepository1(t *testing.T) {
     templateConfigDir := "./test/config1-single-no-setting"
     workDir := initConfig(templateConfigDir)
     cronDir := initCronDir()
-    cronCmd := "echo "
+    cronCmd := "echo"
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
@@ -151,7 +169,7 @@ func TestSelectRepository2(t *testing.T) {
     templateConfigDir := "./test/config2-single-released-setting-only"
     workDir := initConfig(templateConfigDir)
     cronDir := initCronDir()
-    cronCmd := "echo "
+    cronCmd := "echo"
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
@@ -179,7 +197,7 @@ func TestSelectRepository3(t *testing.T) {
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
     cronDir := initCronDir()
-    cronCmd := "echo "
+    cronCmd := "echo"
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
@@ -207,7 +225,7 @@ func TestSelectRepository4(t *testing.T) {
     templateConfigDir := "./test/config3-single-new-setting-only"
     workDir := initConfig(templateConfigDir)
     cronDir := initCronDir()
-    cronCmd := "echo "
+    cronCmd := "echo"
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
@@ -235,7 +253,7 @@ func TestSelectRepository5(t *testing.T) {
     templateConfigDir := "./test/config5-double"
     workDir := initConfig(templateConfigDir)
     cronDir := initCronDir()
-    cronCmd := "echo "
+    cronCmd := "echo"
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
@@ -335,7 +353,7 @@ func TestSelectRepository6(t *testing.T) {
     templateConfigDir := "./test/config6-triple"
     workDir := initConfig(templateConfigDir)
     cronDir := initCronDir()
-    cronCmd := "echo "
+    cronCmd := "echo"
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronDir, cronCmd, cronLog)
 
@@ -429,7 +447,10 @@ func TestSelectRepository6(t *testing.T) {
         assert.NoError(t, err, "リリース設定が保存されていないか、設定内容が不正です")
         assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", settingItems.ImageUri)
         assert.Equal(t, testReleaseAt, settingItems.ReleaseAt)
-        // TODO: cron.d に出力されたファイルの内容チェック実装
+        // cron.d に出力されたファイルの内容を確認
+        cron := readCron(cronDir, "test3")
+        expected := "30 22 2 9 * root echo 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release >> /dev/null"
+        assert.Equal(t, expected, cron)
     })
     
     t.Run("サービスx3・リリース設定（即時リリース）保存（成功）", func(t *testing.T) {
@@ -456,7 +477,10 @@ func TestSelectRepository6(t *testing.T) {
         assert.NoError(t, err, "リリース設定が保存されていないか、設定内容が不正です")
         assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", settingItems.ImageUri)
         assert.Equal(t, now, settingItems.ReleaseAt)
-        // TODO: cron.d に出力されたファイルの内容チェック実装
+        // cron.d に出力されたファイルの内容を確認
+        cron := readCron(cronDir, "test3")
+        expected := fmt.Sprintf("%d %d %d %d * root echo %s >> /dev/null", now.Minute(), now.Hour(), now.Day(), int(now.Month()), testImageUri)
+        assert.Equal(t, expected, cron)
     })
     
     t.Run("サービス×3・イメージ取得（GetImageListのみ）", func(t *testing.T) {

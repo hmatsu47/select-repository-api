@@ -1,10 +1,10 @@
 package api
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"time"
+    "bufio"
+    "fmt"
+    "os"
+    "time"
 )
 
 type SettingItems struct {
@@ -109,7 +109,10 @@ func UpdateSetting(settingPath string, cronPath string, cronCmd string, cronLog 
     day := tmpReleaseAt.Local().Day()
     hour := tmpReleaseAt.Local().Hour()
     minute := tmpReleaseAt.Local().Minute()
-    _, err = fc.WriteString(fmt.Sprintf("%d %d %d %d * root %s %s %s\n", minute, hour, day, month, cronCmd, imageUri, cronLog))
+    cronTime := fmt.Sprintf("%d %d %d %d * ", minute, hour, day, month)
+    cronMain := fmt.Sprintf("root flock %s/%s-release-processing %s %s %s && ", settingPath, serviceName, cronCmd, imageUri, cronLog)
+    cronAfter := fmt.Sprintf("mv %s/%s-release-setting %s/%s-released && rm -f %s%s-release\n", settingPath, serviceName, settingPath, serviceName, cronPath, serviceName)
+    _, err = fc.WriteString(cronTime + cronMain + cronAfter)
 
     return err
 }

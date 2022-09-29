@@ -111,8 +111,9 @@ func UpdateSetting(settingPath string, cronPath string, cronCmd string, cronLog 
     minute := tmpReleaseAt.Local().Minute()
     cronTime := fmt.Sprintf("%d %d %d %d * ", minute, hour, day, month)
     cronMain := fmt.Sprintf("root flock %s/%s-release-processing %s %s %s && ", settingPath, serviceName, cronCmd, imageUri, cronLog)
-    cronAfter := fmt.Sprintf("mv %s/%s-release-setting %s/%s-released && rm -f %s%s-release\n", settingPath, serviceName, settingPath, serviceName, cronPath, serviceName)
-    _, err = fc.WriteString(cronTime + cronMain + cronAfter)
+    cronAfter1 := fmt.Sprintf("mv -f %s/%s-release-setting %s/%s-released && rm -f %s%s-release && ", settingPath, serviceName, settingPath, serviceName, cronPath, serviceName)
+    cronAfter2 := fmt.Sprintf("rm -f %s/%s-release-processing\n", settingPath, serviceName)
+    _, err = fc.WriteString(cronTime + cronMain + cronAfter1 + cronAfter2)
 
     return err
 }

@@ -1,23 +1,23 @@
 package main
 
 import (
-    "bufio"
-    "encoding/json"
-    "fmt"
-    "io"
-    "io/ioutil"
-    "net/http"
-    "net/http/httptest"
-    "os"
-    "path/filepath"
-    "testing"
-    "time"
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
 
-    "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 
-    "github.com/aws/aws-sdk-go-v2/service/ecr/types"
-    "github.com/deepmap/oapi-codegen/pkg/testutil"
-    "github.com/hmatsu47/select-repository-api/api"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	"github.com/deepmap/oapi-codegen/pkg/testutil"
+	"github.com/hmatsu47/select-repository-api/api"
 )
 
 func doGet(t *testing.T, handler http.Handler, url string) *httptest.ResponseRecorder {
@@ -110,8 +110,10 @@ func TestSelectRepository1(t *testing.T) {
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
-    defer clearTempDir(workDir)
-    defer clearTempDir(cronPath)
+    t.Cleanup(func() {
+        clearTempDir(workDir)
+        clearTempDir(cronPath)
+    })
  
     t.Run("単一サービス・リリース未設定・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName
@@ -173,8 +175,10 @@ func TestSelectRepository2(t *testing.T) {
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
-    defer clearTempDir(workDir)
-    defer clearTempDir(cronPath)
+    t.Cleanup(func() {
+        clearTempDir(workDir)
+        clearTempDir(cronPath)
+    })
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -201,8 +205,10 @@ func TestSelectRepository3(t *testing.T) {
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
-    defer clearTempDir(workDir)
-    defer clearTempDir(cronPath)
+    t.Cleanup(func() {
+        clearTempDir(workDir)
+        clearTempDir(cronPath)
+    })
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -229,8 +235,10 @@ func TestSelectRepository4(t *testing.T) {
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
-    defer clearTempDir(workDir)
-    defer clearTempDir(cronPath)
+    t.Cleanup(func() {
+        clearTempDir(workDir)
+        clearTempDir(cronPath)
+    })
  
     ginSelectRepositoryServer := NewGinSelectRepositoryServer(selectRepository, 8080)
     r := ginSelectRepositoryServer.Handler
@@ -257,8 +265,10 @@ func TestSelectRepository5(t *testing.T) {
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
-    defer clearTempDir(workDir)
-    defer clearTempDir(cronPath)
+    t.Cleanup(func() {
+        clearTempDir(workDir)
+        clearTempDir(cronPath)
+    })
  
     t.Run("サービスx2・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName
@@ -357,8 +367,10 @@ func TestSelectRepository6(t *testing.T) {
     cronLog := ">> /dev/null"
     selectRepository := api.NewSelectRepository(workDir, cronPath, cronCmd, cronLog)
 
-    defer clearTempDir(workDir)
-    defer clearTempDir(cronPath)
+    t.Cleanup(func() {
+        clearTempDir(workDir)
+        clearTempDir(cronPath)
+    })
  
     t.Run("サービスx3・設定チェック", func(t *testing.T) {
         var serviceNameList []string = selectRepository.ServiceName

@@ -462,7 +462,7 @@ func TestSelectRepository6(t *testing.T) {
         // cron.d に出力されたファイルの内容を確認
         cron := readCron(cronPath, "test3")
         expected1 := fmt.Sprintf("30 22 2 9 * root flock %s/test3-release-processing ", workDir)
-        expected2 := "echo 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release >> /dev/null && "
+        expected2 := "echo 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release test3 >> /dev/null && "
         expected3 := fmt.Sprintf("mv -f %s/test3-release-setting %s/test3-released && rm -f %stest3-release && ", workDir, workDir, cronPath)
         expected4 := fmt.Sprintf("rm -f %s/test3-release-processing", workDir)
         assert.Equal(t, expected1 + expected2 + expected3 + expected4, cron)
@@ -494,7 +494,7 @@ func TestSelectRepository6(t *testing.T) {
         assert.Equal(t, now, settingItems.ReleaseAt)
         // cron.d に出力されたファイルの内容を確認
         cron := readCron(cronPath, "test3")
-        expected1 := fmt.Sprintf("%d %d %d %d * root flock %s/test3-release-processing echo %s >> /dev/null && ", now.Minute(), now.Hour(), now.Day(), int(now.Month()), workDir, testImageUri)
+        expected1 := fmt.Sprintf("%d %d %d %d * root flock %s/test3-release-processing echo %s test3 >> /dev/null && ", now.Minute(), now.Hour(), now.Day(), int(now.Month()), workDir, testImageUri)
         expected2 := fmt.Sprintf("mv -f %s/test3-release-setting %s/test3-released && rm -f %stest3-release && ", workDir, workDir, cronPath)
         expected3 := fmt.Sprintf("rm -f %s/test3-release-processing", workDir)
         assert.Equal(t, expected1 + expected2 + expected3, cron)

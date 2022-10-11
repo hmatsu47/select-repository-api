@@ -48,4 +48,4 @@ go mod tidy
   - `【cron.d 書き出しパス＋ファイル名プレフィックス】`
     - このファイルのみワークディレクトリ外に生成
       - `/etc/cron.d`に生成する想定
-        - 例 : `5 4 22 9 * root flock /var/select-repository/test-release-processing sh /usr/local/sbin/release.sh 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220922-release >> /var/log/release-log && mv /var/select-repository/test-release-setting /var/select-repository/test-released && rm -f /etc/cron.d/test-release-setting && rm -f /var/select-repository/test-release-processing`
+        - 例 : `5 4 22 9 * root flock /var/select-repository/test-release-processing sh /usr/local/sbin/release.sh 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220922-release sampleService >> /var/log/release-log && mv /var/select-repository/test-release-setting /var/select-repository/test-released && rm -f /etc/cron.d/test-release-setting && rm -f /var/select-repository/test-release-processing`

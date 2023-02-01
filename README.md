@@ -27,6 +27,8 @@ go mod tidy
 
 `go run main.go [-port=待機ポート番号（TCP）] [ワークディレクトリ [cron.d書き出しパス＋ファイル名プレフィックス [cron.dで実行するリリーススクリプト [ログの書き出し指定]]]]`
 
+※ `cron.dで実行するリリーススクリプト` ・ `ログの書き出し指定` の中に `[SERVICE-NAME]` という文字列を入れるとサービス名で置換される
+
 - 開発モードの例
   - `go build`後のバイナリでも同じパラメータの指定が可能
 - 待機ポート番号を省略すると 8080 番で待機
@@ -45,7 +47,7 @@ go mod tidy
   - `【サービス名】-release-processing` : リリース処理中を示すファイル
     - `flock`でロックファイルとして生成
     - このファイルがあると API では`【サービス名】-release-setting`を上書き保存せず 500 Error を返す
-  - `【cron.d 書き出しパス＋ファイル名プレフィックス】`
+  - `【cron.d 書き出しパス＋ファイル名プレフィックス】-【サービス名】`
     - このファイルのみワークディレクトリ外に生成
       - `/etc/cron.d`に生成する想定
-        - 例 : `5 4 22 9 * root flock /var/select-repository/test-release-processing sh /usr/local/sbin/release.sh 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220922-release sampleService >> /var/log/release-log && mv /var/select-repository/test-release-setting /var/select-repository/test-released && rm -f /etc/cron.d/test-release-setting && rm -f /var/select-repository/test-release-processing`
+        - 例 : `5 4 22 9 * root flock /var/select-repository/test-release-processing sh /usr/local/sbin/release-test.sh 000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220922-release >> /var/log/release-log-test && mv /var/select-repository/test-release-setting /var/select-repository/test-released && rm -f /etc/cron.d/test-release-setting && rm -f /var/select-repository/test-release-processing`

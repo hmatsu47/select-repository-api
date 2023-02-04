@@ -100,7 +100,7 @@ func clearTempDir(tmpDir string) {
 	fmt.Printf("テスト用のテンポラリディレクトリ（%s）を削除しました\n", tmpDir)
 }
 
-// go test -v . で実行する
+// go test -v で実行する
 func TestSelectRepository1(t *testing.T) {
 	var err error
 	templateConfigDir := "./test/config1-single-no-setting"
@@ -164,6 +164,17 @@ func TestSelectRepository1(t *testing.T) {
 		assert.Nil(t, setting.ImageUri)
 		assert.Nil(t, setting.ReleaseAt)
 	})
+
+	t.Run("単一サービス・リリース未設定・リリース設定（なし）削除（失敗）", func(t *testing.T) {
+		rr := testutil.NewRequest().Delete("/setting/test1").GoWithHTTPHandler(t, r).Recorder
+		// レスポンスを確認（リリース設定がないのでエラーメッセージが返る想定）
+		var resultErrorMessage api.Error
+		err = json.NewDecoder(rr.Body).Decode(&resultErrorMessage)
+		assert.NoError(t, err, "error getting response")
+		expectMessage := fmt.Sprintf("設定の削除が失敗しました : remove %stest1-release: no such file or directory", cronPath)
+		message := resultErrorMessage.Message
+		assert.Equal(t, expectMessage, message)
+	})
 }
 
 func TestSelectRepository2(t *testing.T) {
@@ -193,6 +204,17 @@ func TestSelectRepository2(t *testing.T) {
 		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220831-release", *setting.ImageUri)
 		expectedTime, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-08-31T23:50:00+09:00")
 		assert.Equal(t, expectedTime, *setting.ReleaseAt)
+	})
+
+	t.Run("単一サービス・リリース未設定・リリース設定（過去のみ）削除（失敗）", func(t *testing.T) {
+		rr := testutil.NewRequest().Delete("/setting/test1").GoWithHTTPHandler(t, r).Recorder
+		// レスポンスを確認（リリース設定がないのでエラーメッセージが返る想定）
+		var resultErrorMessage api.Error
+		err = json.NewDecoder(rr.Body).Decode(&resultErrorMessage)
+		assert.NoError(t, err, "error getting response")
+		expectMessage := fmt.Sprintf("設定の削除が失敗しました : remove %stest1-release: no such file or directory", cronPath)
+		message := resultErrorMessage.Message
+		assert.Equal(t, expectMessage, message)
 	})
 }
 
@@ -356,6 +378,17 @@ func TestSelectRepository5(t *testing.T) {
 		expectReleaseAt, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-11T19:05:00Z")
 		assert.Equal(t, expectReleaseAt, settingItems.ReleaseAt)
 	})
+
+	t.Run("サービスx2・過去リリースなし・リリース設定削除（失敗）", func(t *testing.T) {
+		rr := testutil.NewRequest().Delete("/setting/test2").GoWithHTTPHandler(t, r).Recorder
+		// レスポンスを確認（リリース処理中なのでエラーメッセージが返る想定）
+		var resultErrorMessage api.Error
+		err = json.NewDecoder(rr.Body).Decode(&resultErrorMessage)
+		assert.NoError(t, err, "error getting response")
+		expectMessage := "すでにリリース処理が開始されています。取り消しできません"
+		message := resultErrorMessage.Message
+		assert.Equal(t, expectMessage, message)
+	})
 }
 
 func TestSelectRepository6(t *testing.T) {
@@ -437,7 +470,8 @@ func TestSelectRepository6(t *testing.T) {
 		assert.Equal(t, expectedTime, *setting.ReleaseAt)
 	})
 
-	t.Run("サービスx3・リリース設定（指定日時）保存（成功）", func(t *testing.T) {
+	t.Run("サービスx3・リリース設定（指定日時）保存（成功）→削除（成功）", func(t *testing.T) {
+		// 保存
 		testImageUri := "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release"
 		testReleaseAt, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2122-09-02T22:30:00+09:00")
 		setting := api.Setting{
@@ -466,6 +500,16 @@ func TestSelectRepository6(t *testing.T) {
 		expected3 := fmt.Sprintf("mv -f %s/test3-release-setting %s/test3-released && rm -f %stest3-release && ", workDir, workDir, cronPath)
 		expected4 := fmt.Sprintf("rm -f %s/test3-release-processing", workDir)
 		assert.Equal(t, expected1+expected2+expected3+expected4, cron)
+		// 削除
+		rr = testutil.NewRequest().Delete("/setting/test3").GoWithHTTPHandler(t, r).Recorder
+		// レスポンスを確認
+		assert.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
+		// 実際のcron.d に出力されたファイルを確認
+		_, err = os.Stat(fmt.Sprintf("%stest3-release", cronPath))
+		assert.NotEqual(t, err, nil)
+		// 実際の設定を確認
+		_, err = os.Stat(fmt.Sprintf("%s/test3-release-setting", workDir))
+		assert.NotEqual(t, err, nil)
 	})
 
 	t.Run("サービスx3・リリース設定（即時リリース）保存（成功）", func(t *testing.T) {

@@ -69,6 +69,29 @@ func (s *SelectRepository) GetServices(c *gin.Context) {
     c.JSON(http.StatusOK, result)
 }
 
+// リリース設定の削除（リリース取り消し）
+func (s *SelectRepository) DeleteSetting(c *gin.Context, serviceName ServiceName) {
+    var err error
+    if s.RepositoryMap[serviceName] == nil {
+        sendError(c, http.StatusNotFound, fmt.Sprintf("指定されたサービスが存在しません : %s", serviceName))
+        return
+    }
+
+    // リリース処理中なら 500 Error を返す
+    if CheckNowReleaseProcessing(s.ServiceSettingPath, serviceName) {
+        sendError(c, http.StatusInternalServerError, "すでにリリース処理が開始されています。取り消しできません")
+        return
+    }
+
+    // 設定を削除
+    err = RemoveSetting(s.ServiceSettingPath, s.CronPath, serviceName)
+    if err != nil {
+        sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の削除が失敗しました : %s", err))
+        return
+    }
+    c.Status(http.StatusNoContent)
+}
+
 // リリース設定の取得
 func (s *SelectRepository) GetSetting(c *gin.Context, serviceName ServiceName) {
     if s.RepositoryMap[serviceName] == nil {

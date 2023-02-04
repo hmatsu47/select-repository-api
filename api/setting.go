@@ -101,7 +101,6 @@ func UpdateSetting(settingPath string, cronPath string, cronCmd string, cronLog 
 	realCronCmd := strings.Replace(cronCmd, "[SERVICE-NAME]", serviceName, -1)
 	realCronLog := strings.Replace(cronLog, "[SERVICE-NAME]", serviceName, -1)
 	cronFile := fmt.Sprintf("%s%s-release", cronPath, serviceName)
-	fmt.Printf("保存先ファイル名 : %s\n", cronFile)
 	fc, err := os.Create(cronFile)
 	if err != nil {
 		return err
@@ -117,6 +116,25 @@ func UpdateSetting(settingPath string, cronPath string, cronCmd string, cronLog 
 	cronAfter1 := fmt.Sprintf("mv -f %s/%s-release-setting %s/%s-released && rm -f %s%s-release && ", settingPath, serviceName, settingPath, serviceName, cronPath, serviceName)
 	cronAfter2 := fmt.Sprintf("rm -f %s/%s-release-processing\n", settingPath, serviceName)
 	_, err = fc.WriteString(cronTime + cronMain + cronAfter1 + cronAfter2)
+
+	return err
+}
+
+// 設定削除
+func RemoveSetting(settingPath string, cronPath string, serviceName string) error {
+	var err error
+	// cron.d のリリーススクリプト起動用の設定を先に削除
+	cronFile := fmt.Sprintf("%s%s-release", cronPath, serviceName)
+	err = os.Remove(cronFile)
+	if err != nil {
+		return err
+	}
+	// 設定を削除
+	settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)
+	err = os.Remove(settingFile)
+	if err != nil {
+		return err
+	}
 
 	return err
 }

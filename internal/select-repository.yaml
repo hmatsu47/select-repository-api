@@ -45,11 +45,8 @@ paths:
       summary: ''
       operationId: deleteSetting
       responses:
-        '204':
-          description: No Content
-          headers: {}
-        default:
-          $ref: '#/components/responses/errorResponse'
+        '200':
+          $ref: '#/components/responses/settingResponse'
       description: リリース設定の削除（リリース取り消し）
   '/repositories/{service_name}':
     parameters:

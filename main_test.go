@@ -503,7 +503,7 @@ func TestSelectRepository6(t *testing.T) {
 		// 削除
 		rr = testutil.NewRequest().Delete("/setting/test3").GoWithHTTPHandler(t, r).Recorder
 		// レスポンスを確認
-		assert.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
+		assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
 		// 実際のcron.d に出力されたファイルを確認
 		_, err = os.Stat(fmt.Sprintf("%stest3-release", cronPath))
 		assert.NotEqual(t, err, nil)

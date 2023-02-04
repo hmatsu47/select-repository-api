@@ -83,13 +83,17 @@ func (s *SelectRepository) DeleteSetting(c *gin.Context, serviceName ServiceName
         return
     }
 
+    // 削除前のリリース設定を取得
+    result := ReadSetting(s.ServiceSettingPath, serviceName)
+
     // 設定を削除
     err = RemoveSetting(s.ServiceSettingPath, s.CronPath, serviceName)
     if err != nil {
         sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の削除が失敗しました : %s", err))
         return
     }
-    c.Status(http.StatusNoContent)
+    
+    c.JSON(http.StatusOK, result)
 }
 
 // リリース設定の取得

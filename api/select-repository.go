@@ -87,7 +87,7 @@ func (s *SelectRepository) DeleteSetting(c *gin.Context, serviceName ServiceName
     result := ReadSetting(s.ServiceSettingPath, serviceName)
 
     // 設定を削除
-    err = RemoveSetting(s.ServiceSettingPath, s.CronPath, serviceName)
+    err = RemoveSetting(s.ServiceSettingPath, s.CronPath, s.CronCmd, serviceName)
     if err != nil {
         sendError(c, http.StatusInternalServerError, fmt.Sprintf("設定の削除が失敗しました : %s", err))
         return

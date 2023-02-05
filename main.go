@@ -48,7 +48,7 @@ func main() {
     cron := flag.Arg(1)
     var cronPath string
     if cron == "" {
-        cronPath = "/etc/cron.d/cron-"
+        cronPath = "/etc/cron.d/cron"
     } else {
         cronPath = fmt.Sprintf("%s-", cron)
     }

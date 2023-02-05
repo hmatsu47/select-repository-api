@@ -121,13 +121,15 @@ func UpdateSetting(settingPath string, cronPath string, cronCmd string, cronLog 
 }
 
 // 設定削除
-func RemoveSetting(settingPath string, cronPath string, serviceName string) error {
+func RemoveSetting(settingPath string, cronPath string, cronCmd string, serviceName string) error {
 	var err error
-	// cron.d のリリーススクリプト起動用の設定を先に削除
+	// cron.d のリリーススクリプト起動用の設定を先に削除（cronCmd の指定があれば）
 	cronFile := fmt.Sprintf("%s%s-release", cronPath, serviceName)
-	err = os.Remove(cronFile)
-	if err != nil {
-		return err
+	if cronCmd != "" {
+		err = os.Remove(cronFile)
+		if err != nil {
+			return err
+		}
 	}
 	// 設定を削除
 	settingFile := fmt.Sprintf("%s/%s-release-setting", settingPath, serviceName)

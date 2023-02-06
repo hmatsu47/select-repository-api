@@ -504,10 +504,10 @@ func TestSelectRepository6(t *testing.T) {
 		rr = testutil.NewRequest().Delete("/setting/test3").GoWithHTTPHandler(t, r).Recorder
 		// レスポンスを確認
 		assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
-		// 実際のcron.d に出力されたファイルを確認
+		// 実際に cron.d に出力されたファイルを確認
 		_, err = os.Stat(fmt.Sprintf("%stest3-release", cronPath))
 		assert.NotEqual(t, err, nil)
-		// 実際の設定を確認
+		// 実際に出力された設定ファイルを確認
 		_, err = os.Stat(fmt.Sprintf("%s/test3-release-setting", workDir))
 		assert.NotEqual(t, err, nil)
 	})

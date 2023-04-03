@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -114,19 +113,14 @@ func GetImageList(imageIds []types.ImageIdentifier, imageDetails []types.ImageDe
 }
 
 // ECR リポジトリ内イメージ一覧取得
-func ImageList(repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
+func ImageList(ctx context.Context, api *ecr.Client, repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
 	var err error
-	region := strings.Split(repositoryUri, ".")[3]
-	ecrClient, err := EcrClient(region)
-	if err != nil {
-		return nil, err
-	}
 
-	imageIds, err := EcrListImages(context.TODO(), ecrClient, repositoryName, registryId)
+	imageIds, err := EcrListImages(context.TODO(), api, repositoryName, registryId)
 	if err != nil {
 		return nil, err
 	}
-	imageDetails, err := EcrDescribeImages(context.TODO(), ecrClient, repositoryName, registryId)
+	imageDetails, err := EcrDescribeImages(context.TODO(), api, repositoryName, registryId)
 	if err != nil {
 		return nil, err
 	}

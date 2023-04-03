@@ -1,8 +1,10 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,7 +43,14 @@ func (s *SelectRepository) GetImages(c *gin.Context, serviceName ServiceName, re
         ServiceName: serviceName,
         RepositoryName: repositoryName,
     }]
-    result, err := ImageList(repositoryName, repository2d.RegistryId, repository2d.Uri)
+    var result []Image
+	region := strings.Split(repository2d.Uri, ".")[3]
+	ecrClient, err := EcrClient(region)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, fmt.Sprintf("%s", err))
+		return
+	}
+    result, err = ImageList(context.TODO(), ecrClient, repositoryName, repository2d.RegistryId, repository2d.Uri)
     if err != nil {
         sendError(c, http.StatusInternalServerError, fmt.Sprintf("%s", err))
         return

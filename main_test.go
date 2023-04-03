@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/deepmap/oapi-codegen/pkg/testutil"
 	"github.com/hmatsu47/select-repository-api/api"
+	"github.com/stretchr/testify/assert"
 )
 
 func doGet(t *testing.T, handler http.Handler, url string) *httptest.ResponseRecorder {
@@ -201,9 +201,9 @@ func TestSelectRepository2(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&setting)
 		assert.NoError(t, err, "error getting response")
 		assert.Equal(t, true, setting.IsReleased)
-		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220831-release", *setting.ImageUri)
+		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220831-release", aws.ToString(setting.ImageUri))
 		expectedTime, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-08-31T23:50:00+09:00")
-		assert.Equal(t, expectedTime, *setting.ReleaseAt)
+		assert.Equal(t, expectedTime, aws.ToTime(setting.ReleaseAt))
 	})
 
 	t.Run("単一サービス・リリース未設定・リリース設定（過去のみ）削除（失敗）", func(t *testing.T) {
@@ -242,9 +242,9 @@ func TestSelectRepository3(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&setting)
 		assert.NoError(t, err, "error getting response")
 		assert.Equal(t, false, setting.IsReleased)
-		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220911-release", *setting.ImageUri)
+		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220911-release", aws.ToString(setting.ImageUri))
 		expectedTime, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-10T19:05:00Z")
-		assert.Equal(t, expectedTime, *setting.ReleaseAt)
+		assert.Equal(t, expectedTime, aws.ToTime(setting.ReleaseAt))
 	})
 }
 
@@ -272,9 +272,9 @@ func TestSelectRepository4(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&setting)
 		assert.NoError(t, err, "error getting response")
 		assert.Equal(t, false, setting.IsReleased)
-		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220911-release", *setting.ImageUri)
+		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository1:20220911-release", aws.ToString(setting.ImageUri))
 		expectedTime, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-10T19:05:00Z")
-		assert.Equal(t, expectedTime, *setting.ReleaseAt)
+		assert.Equal(t, expectedTime, aws.ToTime(setting.ReleaseAt))
 	})
 }
 
@@ -349,18 +349,18 @@ func TestSelectRepository5(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&setting)
 		assert.NoError(t, err, "error getting response")
 		assert.Equal(t, false, setting.IsReleased)
-		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository22:20220912-release", *setting.ImageUri)
+		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository22:20220912-release", aws.ToString(setting.ImageUri))
 		expectedTime, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-11T19:05:00Z")
-		assert.Equal(t, expectedTime, *setting.ReleaseAt)
+		assert.Equal(t, expectedTime, aws.ToTime(setting.ReleaseAt))
 	})
 
 	t.Run("サービスx2・リリース設定更新（失敗）", func(t *testing.T) {
 		testImageUri := "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository22:20220921-release"
 		testReleaseAt, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-20T19:05:00Z")
 		setting := api.Setting{
-			ImageUri:   &testImageUri,
+			ImageUri:   aws.String(testImageUri),
 			IsReleased: false,
-			ReleaseAt:  &testReleaseAt,
+			ReleaseAt:  aws.Time(testReleaseAt),
 		}
 		rr := testutil.NewRequest().Post("/setting/test2").WithJsonBody(setting).GoWithHTTPHandler(t, r).Recorder
 		// レスポンスを確認（リリース処理中なのでエラーメッセージが返る想定）
@@ -465,9 +465,9 @@ func TestSelectRepository6(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&setting)
 		assert.NoError(t, err, "error getting response")
 		assert.Equal(t, true, setting.IsReleased)
-		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220915-release", *setting.ImageUri)
+		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220915-release", aws.ToString(setting.ImageUri))
 		expectedTime, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2022-09-15T23:30:00+09:00")
-		assert.Equal(t, expectedTime, *setting.ReleaseAt)
+		assert.Equal(t, expectedTime, aws.ToTime(setting.ReleaseAt))
 	})
 
 	t.Run("サービスx3・リリース設定（指定日時）保存（成功）→削除（成功）", func(t *testing.T) {
@@ -475,9 +475,9 @@ func TestSelectRepository6(t *testing.T) {
 		testImageUri := "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release"
 		testReleaseAt, _ := time.Parse("2006-01-02T15:04:05Z07:00", "2122-09-02T22:30:00+09:00")
 		setting := api.Setting{
-			ImageUri:   &testImageUri,
+			ImageUri:   aws.String(testImageUri),
 			IsReleased: false,
-			ReleaseAt:  &testReleaseAt,
+			ReleaseAt:  aws.Time(testReleaseAt),
 		}
 		rr := testutil.NewRequest().Post("/setting/test3").WithJsonBody(setting).GoWithHTTPHandler(t, r).Recorder
 		// レスポンスを確認
@@ -485,8 +485,8 @@ func TestSelectRepository6(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&resultSetting)
 		assert.NoError(t, err, "error getting response")
 		assert.Equal(t, false, resultSetting.IsReleased)
-		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", *resultSetting.ImageUri)
-		assert.Equal(t, testReleaseAt, *resultSetting.ReleaseAt)
+		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", aws.ToString(resultSetting.ImageUri))
+		assert.Equal(t, testReleaseAt, aws.ToTime(resultSetting.ReleaseAt))
 		// 実際の設定を確認（ファイルに正しく保存されたか？）
 		settingFile := fmt.Sprintf("%s/test3-release-setting", workDir)
 		settingItems, err := api.ReadSettingFromFile(settingFile)
@@ -518,9 +518,9 @@ func TestSelectRepository6(t *testing.T) {
 		tmpNow := time.Now().In(time.Local).Add(1 * time.Minute)
 		now := time.Date(tmpNow.Year(), tmpNow.Month(), tmpNow.Day(), tmpNow.Hour(), tmpNow.Minute(), 0, 0, time.Local)
 		setting := api.Setting{
-			ImageUri:   &testImageUri,
+			ImageUri:   aws.String(testImageUri),
 			IsReleased: false,
-			ReleaseAt:  &testReleaseAt,
+			ReleaseAt:  aws.Time(testReleaseAt),
 		}
 		rr := testutil.NewRequest().Post("/setting/test3").WithJsonBody(setting).GoWithHTTPHandler(t, r).Recorder
 		// レスポンスを確認
@@ -528,8 +528,8 @@ func TestSelectRepository6(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&resultSetting)
 		assert.NoError(t, err, "error getting response")
 		assert.Equal(t, false, resultSetting.IsReleased)
-		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", *resultSetting.ImageUri)
-		assert.Equal(t, now, *resultSetting.ReleaseAt)
+		assert.Equal(t, "000000000000.dkr.ecr.ap-northeast-1.amazonaws.com/repository33:20220922-release", aws.ToString(resultSetting.ImageUri))
+		assert.Equal(t, now, aws.ToTime(resultSetting.ReleaseAt))
 		// 実際の設定を確認（ファイルに正しく保存されたか？）
 		settingFile := fmt.Sprintf("%s/test3-release-setting", workDir)
 		settingItems, err := api.ReadSettingFromFile(settingFile)
@@ -550,13 +550,13 @@ func TestSelectRepository6(t *testing.T) {
 		tag1 := "latest"
 		imageId1 :=
 			types.ImageIdentifier{
-				ImageDigest: &digest1,
-				ImageTag:    &tag1,
+				ImageDigest: aws.String(digest1),
+				ImageTag:    aws.String(tag1),
 			}
 		digest2 := "sha256:20b39162cb057eab7168652ab012ae3712f164bf2b4ef09e6541fca4ead3df62"
 		imageId2 :=
 			types.ImageIdentifier{
-				ImageDigest: &digest2,
+				ImageDigest: aws.String(digest2),
 			}
 		var imageIds []types.ImageIdentifier
 		imageIds = append(imageIds, imageId1)
@@ -573,22 +573,22 @@ func TestSelectRepository6(t *testing.T) {
 		tags1 = append(tags1, tag1)
 		imageDetail1 :=
 			types.ImageDetail{
-				ImageDigest:      &digest1,
-				ImagePushedAt:    &expectedTime1,
-				ImageSizeInBytes: &size1Int64,
+				ImageDigest:      aws.String(digest1),
+				ImagePushedAt:    aws.Time(expectedTime1),
+				ImageSizeInBytes: aws.Int64(size1Int64),
 				ImageTags:        tags1,
-				RegistryId:       &registryId,
-				RepositoryName:   &repositoryName,
+				RegistryId:       aws.String(registryId),
+				RepositoryName:   aws.String(repositoryName),
 			}
 		size2 := float32(10017367)
 		size2Int64 := int64(10017367)
 		imageDetail2 :=
 			types.ImageDetail{
-				ImageDigest:      &digest2,
-				ImagePushedAt:    &expectedTime2,
-				ImageSizeInBytes: &size2Int64,
-				RegistryId:       &registryId,
-				RepositoryName:   &repositoryName,
+				ImageDigest:      aws.String(digest2),
+				ImagePushedAt:    aws.Time(expectedTime2),
+				ImageSizeInBytes: aws.Int64(size2Int64),
+				RegistryId:       aws.String(registryId),
+				RepositoryName:   aws.String(repositoryName),
 			}
 		var imageDetails []types.ImageDetail
 		imageDetails = append(imageDetails, imageDetail1)

@@ -28,7 +28,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.16.13 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.16.13
 	github.com/aws/aws-sdk-go-v2/config v1.17.4
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.20 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.14 // indirect

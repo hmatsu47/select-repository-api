@@ -29,6 +29,12 @@ func ImageTag(ids []types.ImageIdentifier, tags []string, digest string) string 
 	return ""
 }
 
+// ECR API interface
+type ECRAPI interface {
+	EcrListImagesAPI
+	EcrDescribeImagesAPI
+}
+
 // ECR クライアント生成
 func EcrClient(region string) (*ecr.Client, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
@@ -113,7 +119,7 @@ func GetImageList(imageIds []types.ImageIdentifier, imageDetails []types.ImageDe
 }
 
 // ECR リポジトリ内イメージ一覧取得
-func ImageList(ctx context.Context, api *ecr.Client, repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
+func ImageList(ctx context.Context, api ECRAPI, repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
 	imageIds, err := EcrListImages(context.TODO(), api, repositoryName, registryId)
 	if err != nil {
 		return nil, err

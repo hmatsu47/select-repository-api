@@ -114,8 +114,6 @@ func GetImageList(imageIds []types.ImageIdentifier, imageDetails []types.ImageDe
 
 // ECR リポジトリ内イメージ一覧取得
 func ImageList(ctx context.Context, api *ecr.Client, repositoryName string, registryId string, repositoryUri string) ([]Image, error) {
-	var err error
-
 	imageIds, err := EcrListImages(context.TODO(), api, repositoryName, registryId)
 	if err != nil {
 		return nil, err

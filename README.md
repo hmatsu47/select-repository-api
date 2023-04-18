@@ -15,7 +15,7 @@ cd internal
 （作成した`.yaml`ファイルを`internal`内にコピー）
 cd ..
 mkdir api
-go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.0
+go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12.4
 oapi-codegen -output-config -old-config-style -package=api -generate=types -alias-types internal/select-repository.yaml > api/config-types.yaml
 oapi-codegen -output-config -old-config-style -package=api -generate=gin,spec -alias-types internal/select-repository.yaml > api/config-server.yaml
 oapi-codegen -config api/config-types.yaml internal/select-repository.yaml > api/types.gen.go

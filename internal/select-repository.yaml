@@ -1,32 +1,32 @@
 openapi: 3.0.0
 info:
   title: select-repository
-  version: '1.0'
+  version: "1.0"
   contact:
     name: Hiroyasu Matsuhisa
-    url: 'https://github.com/hmatsu47'
+    url: "https://github.com/hmatsu47"
     email: hmatsu47@gmail.com
   license:
     name: MIT
-    url: 'https://github.com/hmatsu47/select-repository-app/blob/master/LICENSE'
+    url: "https://github.com/hmatsu47/select-repository-app/blob/master/LICENSE"
   description: ECRリポジトリ選択用API
 servers:
-  - url: 'http://localhost:3000'
+  - url: "http://localhost:3000"
 paths:
-  '/setting/{service_name}':
+  "/setting/{service_name}":
     parameters:
-      - $ref: '#/components/parameters/service_name'
+      - $ref: "#/components/parameters/service_name"
     post:
       summary: リリース設定の生成・更新
       operationId: postSetting
       responses:
-        '200':
-          $ref: '#/components/responses/settingResponse'
+        "200":
+          $ref: "#/components/responses/settingResponse"
         default:
-          $ref: '#/components/responses/errorResponse'
+          $ref: "#/components/responses/errorResponse"
       description: リリース設定の生成・更新
       requestBody:
-        $ref: '#/components/requestBodies/settingRequest'
+        $ref: "#/components/requestBodies/settingRequest"
       tags:
         - setting
     get:
@@ -37,56 +37,58 @@ paths:
       tags:
         - setting
       responses:
-        '200':
-          $ref: '#/components/responses/settingResponse'
+        "200":
+          $ref: "#/components/responses/settingResponse"
         default:
-          $ref: '#/components/responses/errorResponse'
+          $ref: "#/components/responses/errorResponse"
     delete:
-      summary: ''
+      summary: リリース設定の削除
       operationId: deleteSetting
       responses:
-        '200':
-          $ref: '#/components/responses/settingResponse'
+        "200":
+          $ref: "#/components/responses/settingResponse"
       description: リリース設定の削除（リリース取り消し）
-  '/repositories/{service_name}':
+      tags:
+        - setting
+  "/repositories/{service_name}":
     parameters:
-      - $ref: '#/components/parameters/service_name'
+      - $ref: "#/components/parameters/service_name"
     get:
       summary: リポジトリ一覧の取得
       operationId: getRepositories
       responses:
-        '200':
-          $ref: '#/components/responses/repositoriesResponse'
+        "200":
+          $ref: "#/components/responses/repositoriesResponse"
         default:
-          $ref: '#/components/responses/errorResponse'
+          $ref: "#/components/responses/errorResponse"
       description: リポジトリ一覧の取得
       tags:
         - repository
-  '/images/{service_name}/{repository_name}':
+  "/images/{service_name}/{repository_name}":
     get:
       summary: コンテナイメージ一覧の取得
       responses:
-        '200':
-          $ref: '#/components/responses/imagesResponse'
+        "200":
+          $ref: "#/components/responses/imagesResponse"
         default:
-          $ref: '#/components/responses/errorResponse'
+          $ref: "#/components/responses/errorResponse"
       operationId: getImages
       description: コンテナイメージ一覧の取得
       tags:
         - image
     parameters:
-      - $ref: '#/components/parameters/repository_name'
-      - $ref: '#/components/parameters/service_name'
+      - $ref: "#/components/parameters/repository_name"
+      - $ref: "#/components/parameters/service_name"
   /services:
     get:
       summary: コンテナサービス一覧の取得
       tags:
         - service
       responses:
-        '200':
-          $ref: '#/components/responses/servicesResponse'
+        "200":
+          $ref: "#/components/responses/servicesResponse"
         default:
-          $ref: '#/components/responses/errorResponse'
+          $ref: "#/components/responses/errorResponse"
       operationId: getServices
       description: |
         コンテナサービス一覧の取得
@@ -195,7 +197,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Setting'
+            $ref: "#/components/schemas/Setting"
       description: リリース設定リクエストボディ
   responses:
     repositoriesResponse:
@@ -205,7 +207,7 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/Repository'
+              $ref: "#/components/schemas/Repository"
     imagesResponse:
       description: コンテナイメージ一覧レスポンスボディ
       content:
@@ -213,19 +215,19 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/Image'
+              $ref: "#/components/schemas/Image"
     settingResponse:
       description: リリース設定レスポンスボディ
       content:
         application/xml:
           schema:
-            $ref: '#/components/schemas/Setting'
+            $ref: "#/components/schemas/Setting"
     errorResponse:
       description: エラーメッセージレスポンスボディ
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     servicesResponse:
       description: サービス一覧レスポンスボディ
       content:
@@ -233,7 +235,7 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/Service'
+              $ref: "#/components/schemas/Service"
   securitySchemes: {}
 tags:
   - name: image
